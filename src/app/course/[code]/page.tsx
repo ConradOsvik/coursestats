@@ -2,6 +2,7 @@ import { db } from '@/lib/db'
 import { notFound } from 'next/navigation'
 import Votes from './components/votes'
 import { unstable_cache as cache } from 'next/cache'
+import BarChart from './components/bar-chart'
 
 const getCourse = cache(
 	async (code: string) => {
@@ -41,6 +42,7 @@ export default async function Course({ params }: { params: { code: string } }) {
 				dislikes={data.dislikes}
 				code={data.code}
 			/>
+			<BarChart likes={data.likes} dislikes={data.dislikes} />
 		</div>
 	)
 }

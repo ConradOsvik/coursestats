@@ -1,6 +1,6 @@
 'use client'
 
-import { FormEvent, useEffect, useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import { useTypewriter } from 'react-simple-typewriter'
 import { addCourse } from '../actions'
 
@@ -40,22 +40,6 @@ export default function Search() {
 		}
 	}
 
-	const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-		e.preventDefault()
-
-		const url = `https://www.ntnu.no/studier/emner/${(
-			e.currentTarget[0] as HTMLInputElement
-		).value.toUpperCase()}`
-
-		const data = await fetch('/api', {
-			method: 'POST',
-			body: JSON.stringify({
-				url: url,
-			}),
-		}).then((res) => res.json())
-
-		console.log(data)
-	}
 	return (
 		<form
 			className="relative border border-border rounded-md m-4 hover:border-foreground focus-within:border-foreground transition-colors duration-150"
