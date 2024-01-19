@@ -4,8 +4,7 @@ import './globals.css'
 import { ThemeProvider } from '@/components/theme-provider'
 import Header from '@/components/layout/header'
 import Footer from '@/components/layout/footer'
-
-const inter = Inter({ subsets: ['latin'] })
+import { cn } from '@/lib/utils'
 
 export const metadata: Metadata = {
 	title: 'Trenger Jeg Bok?',
@@ -13,14 +12,21 @@ export const metadata: Metadata = {
 		'En nettside for å finne ut om du trenger bok eller ikke i et gitt fag på NTNU',
 }
 
+const inter = Inter({ subsets: ['latin'] })
+
 export default function RootLayout({
 	children,
 }: {
 	children: React.ReactNode
 }) {
 	return (
-		<html lang="en">
-			<body className={inter.className}>
+		<html lang="en" suppressHydrationWarning>
+			<body
+				className={cn(
+					inter.className,
+					'w-full max-h-screen h-screen flex flex-col'
+				)}
+			>
 				<ThemeProvider
 					attribute="class"
 					defaultTheme="system"
