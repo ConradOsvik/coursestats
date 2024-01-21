@@ -45,10 +45,12 @@ export default function Search() {
 	const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
 		e.preventDefault()
 
+		if ((e.currentTarget[0] as HTMLInputElement).value === '') return
+
 		router.push(
-			`/course/${(
-				e.currentTarget[0] as HTMLInputElement
-			).value.toLowerCase()}`
+			`/course/${(e.currentTarget[0] as HTMLInputElement).value
+				.trim()
+				.toLowerCase()}`
 		)
 	}
 

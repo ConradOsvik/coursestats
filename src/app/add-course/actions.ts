@@ -41,7 +41,7 @@ async function insertCourseToDB(courseDetails: CourseDetails) {
 }
 
 export async function addCourse(formData: FormData) {
-	const course = formData.get('course')?.toString() ?? ''
+	const course = formData.get('course')?.toString().trim().toLowerCase() ?? ''
 
 	const $ = await fetchCourseData(course)
 	const courseDetails = parseCourseDetails($)

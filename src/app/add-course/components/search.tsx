@@ -4,7 +4,7 @@ import { useEffect, useRef } from 'react'
 import { useTypewriter } from 'react-simple-typewriter'
 import { addCourse } from '../actions'
 
-export default function Search() {
+export default function Search({ value }: { value: string }) {
 	const [text] = useTypewriter({
 		words: ['IDATT1002', 'IMAT1002', 'TDT4100'],
 		loop: false,
@@ -48,6 +48,7 @@ export default function Search() {
 			<input
 				className="text-2xl w-96 outline-none p-4 bg-transparent uppercase"
 				placeholder={text}
+				defaultValue={value}
 				name="course"
 				ref={inputRef}
 			/>
