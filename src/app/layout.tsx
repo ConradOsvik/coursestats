@@ -35,7 +35,9 @@ export default function RootLayout({
 					disableTransitionOnChange
 				>
 					<Header />
-					{children}
+					<main className="w-full flex-grow flex flex-col justify-center items-center">
+						{children}
+					</main>
 					<Footer />
 					<SpeedInsights />
 				</ThemeProvider>

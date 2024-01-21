@@ -34,7 +34,7 @@ export default async function Course({ params }: { params: { code: string } }) {
 	const course = await getCourse(params.code)
 
 	return (
-		<div className="w-screen h-screen flex flex-col justify-center items-center">
+		<>
 			<h1 className="m-2 text-4xl font-bold">
 				{course.code} - {course.name}
 			</h1>
@@ -45,6 +45,6 @@ export default async function Course({ params }: { params: { code: string } }) {
 				code={course.code}
 			/>
 			<BarChart likes={course.likes} dislikes={course.dislikes} />
-		</div>
+		</>
 	)
 }

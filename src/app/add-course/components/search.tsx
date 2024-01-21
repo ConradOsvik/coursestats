@@ -18,6 +18,8 @@ export default function Search({ value }: { value: string }) {
 
 		window.addEventListener('keydown', handleKeyDown)
 
+		if (inputRef.current) inputRef.current.focus()
+
 		return () => {
 			window.removeEventListener('keydown', handleKeyDown)
 		}
