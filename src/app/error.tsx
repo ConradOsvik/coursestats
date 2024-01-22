@@ -14,7 +14,7 @@ export default function Error({
 				Oops - En feil har skjedd
 			</h1>
 			<p className="m-2 text-xl text-zinc-500">{error.message}</p>
-			<Button className="h-auto m-4 px-8 py-4 text-md" asChild>
+			<Button className="h-auto m-4 px-8 py-4 text-lg" asChild>
 				<Link href="/">Hjem</Link>
 			</Button>
 		</div>

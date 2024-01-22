@@ -8,7 +8,7 @@ export default function NotFound() {
 			<p className="mt-2 text-xl text-zinc-500">
 				Emnet du leter etter finnes ikke
 			</p>
-			<Button className="h-auto m-4 px-8 py-4 text-md" asChild>
+			<Button className="h-auto m-4 px-8 py-4 text-lg" asChild>
 				<Link href="/">Hjem</Link>
 			</Button>
 		</div>
