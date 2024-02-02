@@ -1,5 +1,5 @@
 import { db } from '@/lib/db'
-import { notFound, redirect } from 'next/navigation'
+import { notFound } from 'next/navigation'
 import Votes from './components/votes'
 import { unstable_cache as cache } from 'next/cache'
 import BarChart from './components/bar-chart'
@@ -9,6 +9,10 @@ import { courses } from '@/lib/db/schema'
 interface CourseDetails {
 	code: string
 	name: string
+}
+
+export async function generateStaticParams() {
+	return []
 }
 
 export async function generateMetadata({
@@ -39,7 +43,7 @@ function parseCourseDetails($: cheerio.CheerioAPI) {
 	return { code, name }
 }
 
-async function insertCourseToDB(courseDetails: CourseDetails) {
+async function insertCourseIntoDB(courseDetails: CourseDetails) {
 	try {
 		await db.insert(courses).values({
 			...courseDetails,
@@ -47,16 +51,14 @@ async function insertCourseToDB(courseDetails: CourseDetails) {
 			dislikes: 0,
 		})
 	} catch (e) {
-		console.log('insert failed', e)
+		console.log('insertion failed', e)
 	}
 }
 
 async function addCourse(code: string) {
 	const $ = await fetchCourseData(code)
 	const courseDetails = parseCourseDetails($)
-	await insertCourseToDB(courseDetails)
-
-	redirect(`/course/${courseDetails.code.toLowerCase()}`)
+	await insertCourseIntoDB(courseDetails)
 }
 
 const getCourse = cache(
@@ -96,6 +98,7 @@ export default async function Course({ params }: { params: { code: string } }) {
 				dislikes={course.dislikes}
 				code={course.code}
 			/>
+			<p className="m-2 text-xl text-zinc-500">Fordeling:</p>
 			<BarChart likes={course.likes} dislikes={course.dislikes} />
 		</>
 	)
