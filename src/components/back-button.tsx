@@ -12,8 +12,6 @@ export default function BackButton() {
 	const handleClick = (e: MouseEvent<HTMLButtonElement>) => {
 		e.preventDefault()
 		router.back()
-
-		console.log(router)
 	}
 
 	if (pathname === '/') return null

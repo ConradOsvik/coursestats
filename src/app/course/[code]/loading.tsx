@@ -7,7 +7,7 @@ export default function Loading() {
 				<span className="m-4 w-64 h-64 bg-zinc-50 dark:bg-zinc-900 rounded-full" />
 				<span className="m-4 w-64 h-64 bg-zinc-50 dark:bg-zinc-900 rounded-full" />
 			</div>
-			<span className="m-4 h-12 w-[40rem] bg-zinc-50 dark:bg-zinc-900 rounded-md" />
+			<span className="m-4 h-12 w-[34rem] bg-zinc-50 dark:bg-zinc-900 rounded-md" />
 		</>
 	)
 }
