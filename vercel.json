@@ -2,8 +2,7 @@
     "crons": [
         {
             "path": "/api/cron/get-semester",
-            "schedule": "0 0 16 2,10 *",
-            "timezone": "UTC"
+            "schedule": "0 0 16 2,10 *"
         }
     ]
 }
