@@ -17,20 +17,6 @@ export default function Search() {
         delaySpeed: 2000
     })
 
-    useEffect(() => {
-        if (!window) return
-
-        window.addEventListener('keydown', handleKeyDown)
-
-        if (inputRef.current) inputRef.current.focus()
-
-        return () => {
-            window.removeEventListener('keydown', handleKeyDown)
-        }
-    }, [])
-
-    if (path === '/') return
-
     const handleKeyDown = (e: KeyboardEvent) => {
         if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
             e.preventDefault()
@@ -48,6 +34,18 @@ export default function Search() {
         }
     }
 
+    useEffect(() => {
+        if (!window) return
+
+        window.addEventListener('keydown', handleKeyDown)
+
+        if (inputRef.current) inputRef.current.focus()
+
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown)
+        }
+    }, [])
+
     const handleSubmit = (e: FormEvent) => {
         e.preventDefault()
 
@@ -58,6 +56,8 @@ export default function Search() {
 
         router.push(`/course/${input.value.trim().toLowerCase()}`)
     }
+
+    if (path === '/') return
 
     return (
         <form onSubmit={handleSubmit} className='relative'>

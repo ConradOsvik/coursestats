@@ -16,18 +16,6 @@ export default function Search() {
         delaySpeed: 2000
     })
 
-    useEffect(() => {
-        if (!window) return
-
-        window.addEventListener('keydown', handleKeyDown)
-
-        if (inputRef.current) inputRef.current.focus()
-
-        return () => {
-            window.removeEventListener('keydown', handleKeyDown)
-        }
-    }, [])
-
     const handleKeyDown = (e: KeyboardEvent) => {
         if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
             e.preventDefault()
@@ -44,6 +32,18 @@ export default function Search() {
             inputRef.current.blur()
         }
     }
+
+    useEffect(() => {
+        if (!window) return
+
+        window.addEventListener('keydown', handleKeyDown)
+
+        if (inputRef.current) inputRef.current.focus()
+
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown)
+        }
+    }, [])
 
     const handleSubmit = (e: FormEvent) => {
         e.preventDefault()
