@@ -1,5 +1,6 @@
 import * as cheerio from 'cheerio'
 import { notFound } from 'next/navigation'
+import { cache } from 'react'
 import 'server-only'
 
 import { db } from '@/lib/server/db'
@@ -25,14 +26,19 @@ async function getData(code: string) {
     return parseTitle(title)
 }
 
-export async function addCourse(_id: string) {
+async function INTERNAL__addCourse(_id: string) {
     const id = _id.toUpperCase()
     const { name } = await getData(id)
 
-    db.insert(courses)
+    await db
+        .insert(courses)
         .values({
             id,
             name
         })
-        .then(() => addSemesters(id))
+        .onConflictDoNothing()
+
+    await addSemesters(id)
 }
+
+export const addCourse = cache(INTERNAL__addCourse)

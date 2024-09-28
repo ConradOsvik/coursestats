@@ -106,21 +106,30 @@ export const getData = async (
 
     const query = buildQuery(filters)
 
-    const res = await fetch(URL, {
-        method: 'POST',
-        body: JSON.stringify(query),
-        headers: {
-            'Content-type': 'application/json'
-        }
-    })
+    try {
+        const res = await fetch(URL, {
+            method: 'POST',
+            body: JSON.stringify(query),
+            headers: {
+                'Content-type': 'application/json'
+            }
+        })
 
-    if (!res.ok) {
+        if (!res.ok) {
+            throw new Error('Failed to fetch data')
+        }
+
+        if (res.status === 204) {
+            return []
+        }
+
+        const data = res.json() as Promise<SemesterData[]>
+
+        return data
+    } catch (e) {
+        console.error(e)
         throw new Error('Failed to fetch data')
     }
-
-    const data = res.json() as Promise<SemesterData[]>
-
-    return data
 }
 
 const initializeSemesterData = (

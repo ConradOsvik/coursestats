@@ -16,6 +16,13 @@ export default function StatsContainer({ id }: { id: string }) {
 
 async function StatsWrapper({ id }: { id: string }) {
     const data = await getSemesters(id)
+    if (data.length === 0)
+        return (
+            <div className='flex h-full w-full items-center justify-center'>
+                <h1 className='text-4xl'>No data found</h1>
+            </div>
+        )
+
     const statsData = data.map((item) => {
         const grades = [item.a, item.b, item.c, item.d, item.e, item.f]
         const gradeValues = [5, 4, 3, 2, 1, 0]

@@ -17,6 +17,13 @@ export default function FailureChartContainer({ id }: { id: string }) {
 
 async function FailureChartWrapper({ id }: { id: string }) {
     const data = await getSemesters(id)
+    if (data.length === 0)
+        return (
+            <div className='flex h-full w-full items-center justify-center'>
+                <h1 className='text-4xl'>No data found</h1>
+            </div>
+        )
+
     const chartData = data.map((item) => {
         const totalGrades =
             (item.a ?? 0) +

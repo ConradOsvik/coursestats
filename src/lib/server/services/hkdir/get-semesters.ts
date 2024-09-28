@@ -1,7 +1,7 @@
 import { formatSemesterData, getData } from './utils'
 
-export const getSemesters = async (courseCode: string) => {
-    const data = await getData(courseCode)
+export const getSemesters = async (id: string) => {
+    const data = await getData(id)
 
     return formatSemesterData(data)
 }

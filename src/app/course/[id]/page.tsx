@@ -8,20 +8,17 @@ import SemesterChartContainer from './_components/stats/semester-chart-container
 import StatsContainer from './_components/stats/stats-container'
 import Title from './_components/title'
 
-export const dynamicParams = true
-export function generateStaticParams() {
-    return []
-}
-
 export default async function CoursePage({
     params: { id }
 }: {
     params: { id: string }
 }) {
+    const course = await getCourse(id)
+
     return (
         <main className='grid w-full max-w-5xl grid-cols-2'>
             <div className='col-span-2 w-full'>
-                <Title id={id} />
+                <Title name={course.name} id={course.id} />
             </div>
             <div className='h-80 w-full'>
                 <Rating id={id} />

@@ -17,6 +17,13 @@ export default function AverageChartContainer({ id }: { id: string }) {
 
 async function AverageChartWrapper({ id }: { id: string }) {
     const data = await getSemesters(id)
+    if (data.length === 0)
+        return (
+            <div className='flex h-full w-full items-center justify-center'>
+                <h1 className='text-4xl'>No data found</h1>
+            </div>
+        )
+
     const chartData = data.map((item) => {
         const grades = [item.a, item.b, item.c, item.d, item.e, item.f]
         const gradeValues = [5, 4, 3, 2, 1, 0]
