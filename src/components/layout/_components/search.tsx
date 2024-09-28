@@ -8,9 +8,6 @@ import { Input } from '@/components/ui/input'
 
 export default function Search() {
     const path = usePathname()
-
-    if (path === '/') return
-
     const router = useRouter()
     const inputRef = useRef<HTMLInputElement>(null)
 
@@ -31,6 +28,8 @@ export default function Search() {
             window.removeEventListener('keydown', handleKeyDown)
         }
     }, [])
+
+    if (path === '/') return
 
     const handleKeyDown = (e: KeyboardEvent) => {
         if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {

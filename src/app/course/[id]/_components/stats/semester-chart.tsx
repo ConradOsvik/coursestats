@@ -37,7 +37,10 @@ export default function SemesterChart({
     const [selectedSemester, setSelectedSemester] =
         useAtom(selectedSemesterAtom)
 
-    useEffect(() => setSelectedSemester(chartData.length - 1), [chartData])
+    useEffect(
+        () => setSelectedSemester(chartData.length - 1),
+        [chartData, setSelectedSemester]
+    )
 
     const selectedData = useMemo(
         () => chartData[selectedSemester],
