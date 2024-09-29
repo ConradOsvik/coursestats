@@ -1,16 +1,13 @@
-import { Button, buttonVariants } from '../ui/button'
-
 export default function Footer() {
-	return (
-		<footer className="w-full text-center p-4">
-			Made with ❤️ by{' '}
-			<a
-				className="hover:underline"
-				href="https://github.com/ConradOsvik"
-				target="_blank"
-			>
-				Conrad
-			</a>
-		</footer>
-	)
+    return (
+        <footer className='flex w-full items-center justify-center p-8'>
+            <a
+                href='https://github.com/ConradOsvik'
+                target='_blank'
+                className='border-black text-lg no-underline hover:border-b'
+            >
+                Made with ❤️ by Conrad
+            </a>
+        </footer>
+    )
 }

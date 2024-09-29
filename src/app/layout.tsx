@@ -1,47 +1,40 @@
-import { SpeedInsights } from '@vercel/speed-insights/next'
+import '@/styles/globals.css'
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
-import './globals.css'
-import { ThemeProvider } from '@/components/theme-provider'
-import Header from '@/components/layout/header'
+
 import Footer from '@/components/layout/footer'
-import { cn } from '@/lib/utils'
+import Header from '@/components/layout/header'
+import { Toaster } from '@/components/ui/sonner'
+
+import Providers from './providers'
+
+const inter = Inter({
+    subsets: ['latin'],
+    variable: '--font-inter'
+})
 
 export const metadata: Metadata = {
-	title: 'Trenger Jeg Bok?',
-	description:
-		'En nettside for å finne ut om du trenger bok eller ikke i et gitt fag på NTNU',
+    title: 'coursestats',
+    description: 'Statistics for courses at NTNU'
 }
 
-const inter = Inter({ subsets: ['latin'] })
-
 export default function RootLayout({
-	children,
-}: {
-	children: React.ReactNode
-}) {
-	return (
-		<html lang="en" suppressHydrationWarning>
-			<body
-				className={cn(
-					inter.className,
-					'w-full max-h-screen h-screen flex flex-col'
-				)}
-			>
-				<ThemeProvider
-					attribute="class"
-					defaultTheme="system"
-					enableSystem
-					disableTransitionOnChange
-				>
-					<Header />
-					<main className="w-full flex-grow flex flex-col justify-center items-center">
-						{children}
-					</main>
-					<Footer />
-					<SpeedInsights />
-				</ThemeProvider>
-			</body>
-		</html>
-	)
+    children
+}: Readonly<{
+    children: React.ReactNode
+}>) {
+    return (
+        <html lang='en' suppressHydrationWarning>
+            <body
+                className={`bg-background font-sans ${inter.variable} flex h-screen flex-col items-center justify-start`}
+            >
+                <Providers>
+                    <Toaster />
+                    <Header />
+                    {children}
+                    <Footer />
+                </Providers>
+            </body>
+        </html>
+    )
 }

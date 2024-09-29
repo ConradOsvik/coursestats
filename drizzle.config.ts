@@ -1,11 +1,15 @@
-import { type Config } from 'drizzle-kit'
-import 'dotenv/config'
+import { config } from 'dotenv'
+import type { Config } from 'drizzle-kit'
+import { defineConfig } from 'drizzle-kit'
 
-export default {
-	schema: './src/lib/db/schema.ts',
-	driver: 'mysql2',
-	dbCredentials: {
-		uri: process.env.DATABASE_URL as string,
-	},
-	tablesFilter: ['trengerjegbok_*'],
-} satisfies Config
+config()
+
+export default defineConfig({
+    schema: 'src/lib/server/db/schema.ts',
+    dialect: 'sqlite',
+    driver: 'turso',
+    dbCredentials: {
+        url: process.env.TURSO_DATABASE_URL!,
+        authToken: process.env.TURSO_DATABASE_AUTH_TOKEN!
+    }
+}) satisfies Config
