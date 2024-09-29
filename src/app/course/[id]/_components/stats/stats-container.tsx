@@ -62,7 +62,7 @@ async function StatsWrapper({ id }: { id: string }) {
         return {
             name: `${item.semester.charAt(0).toUpperCase() + item.semester.slice(1)} ${item.year.toString().slice(-2)}`,
             average,
-            failurePercentage
+            failurePercentage: Math.round(failurePercentage * 1000) / 10
         }
     })
 

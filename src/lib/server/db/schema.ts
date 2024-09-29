@@ -21,24 +21,29 @@ export const courses = coursestats(
     })
 )
 
-export const semesters = coursestats('semester', {
-    id: text('id')
-        .primaryKey()
-        .$defaultFn(() => ulid()),
-    courseId: text('courseId')
-        .notNull()
-        .references(() => courses.id, { onDelete: 'cascade' }),
-    year: integer('year').notNull(),
-    semester: text('semester', { enum: ['fall', 'spring'] }).notNull(),
-    a: integer('a').notNull(),
-    b: integer('b').notNull(),
-    c: integer('c').notNull(),
-    d: integer('d').notNull(),
-    e: integer('e').notNull(),
-    f: integer('f').notNull(),
-    passed: integer('passed').notNull(),
-    failed: integer('failed').notNull()
-})
+export const semesters = coursestats(
+    'semester',
+    {
+        courseId: text('courseId')
+            .notNull()
+            .references(() => courses.id, { onDelete: 'cascade' }),
+        year: integer('year').notNull(),
+        semester: text('semester', { enum: ['fall', 'spring'] }).notNull(),
+        a: integer('a').notNull(),
+        b: integer('b').notNull(),
+        c: integer('c').notNull(),
+        d: integer('d').notNull(),
+        e: integer('e').notNull(),
+        f: integer('f').notNull(),
+        passed: integer('passed').notNull(),
+        failed: integer('failed').notNull()
+    },
+    (semesters) => ({
+        compositeKey: primaryKey({
+            columns: [semesters.courseId, semesters.year, semesters.semester]
+        })
+    })
+)
 
 export const ratings = coursestats(
     'rating',
