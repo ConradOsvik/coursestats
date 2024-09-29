@@ -1,8 +1,10 @@
 'use client'
 
 import { usePathname, useRouter } from 'next/navigation'
-import { type FormEvent, useEffect, useRef } from 'react'
+import { type FormEvent, useEffect, useMemo, useRef } from 'react'
 import { useTypewriter } from 'react-simple-typewriter'
+
+import { cn } from '@/lib/utils'
 
 import { Input } from '@/components/ui/input'
 
@@ -12,10 +14,15 @@ export default function Search() {
     const inputRef = useRef<HTMLInputElement>(null)
 
     const [text] = useTypewriter({
-        words: ['TMA4100', 'IDATT1002', 'IMAT1002', 'TDT4100'],
+        words: ['TMA4100', 'IMAT1002', 'TDT4100', 'TMA4240'],
         loop: false,
         delaySpeed: 2000
     })
+
+    const isMac = useMemo(
+        () => /(Mac|iPhone|iPod|iPad)/i.test(navigator.userAgent),
+        []
+    )
 
     const handleKeyDown = (e: KeyboardEvent) => {
         if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
@@ -64,10 +71,19 @@ export default function Search() {
             <Input
                 ref={inputRef}
                 placeholder={text}
-                className='w-80 px-2 py-4 text-lg'
+                className='w-80 px-2 py-4 text-lg uppercase'
             />
             <kbd className='text pointer-events-none absolute right-2 top-1/2 flex -translate-y-1/2 items-center justify-center rounded-md bg-muted px-2'>
-                <span className='mr-1 text-xl'>⌘</span>K
+                <span
+                    className={cn(
+                        'mr-1',
+                        isMac && 'text-xl',
+                        !isMac && 'text-sm'
+                    )}
+                >
+                    {isMac ? '⌘' : 'Ctrl'}
+                </span>
+                K
             </kbd>
         </form>
     )

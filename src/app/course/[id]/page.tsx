@@ -8,6 +8,17 @@ import SemesterChartContainer from './_components/stats/semester-chart-container
 import StatsContainer from './_components/stats/stats-container'
 import Title from './_components/title'
 
+export async function generateMetadata({
+    params: { id }
+}: {
+    params: { id: string }
+}) {
+    return {
+        title: `coursestats / ${id.toUpperCase()}`,
+        description: `statistics for ${id.toUpperCase()}`
+    }
+}
+
 export default async function CoursePage({
     params: { id }
 }: {

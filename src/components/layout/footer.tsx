@@ -4,9 +4,9 @@ export default function Footer() {
             <a
                 href='https://github.com/ConradOsvik'
                 target='_blank'
-                className='border-black text-lg no-underline hover:border-b'
+                className='border-b border-transparent text-lg no-underline hover:border-foreground'
             >
-                Made with ❤️ by Conrad
+                Made by Conrad Osvik
             </a>
         </footer>
     )
