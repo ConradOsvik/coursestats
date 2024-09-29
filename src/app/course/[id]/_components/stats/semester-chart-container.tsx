@@ -24,21 +24,27 @@ async function SemesterChartWrapper({ id }: { id: string }) {
         )
 
     const chartData = data.map((item) => {
-        const isGraded = item.a !== null
+        const isGraded =
+            item.a !== 0 ||
+            item.b !== 0 ||
+            item.c !== 0 ||
+            item.d !== 0 ||
+            item.e !== 0 ||
+            item.f !== 0
 
         if (isGraded) {
             return [
-                { name: 'A', value: item.a || 0 },
-                { name: 'B', value: item.b || 0 },
-                { name: 'C', value: item.c || 0 },
-                { name: 'D', value: item.d || 0 },
-                { name: 'E', value: item.e || 0 },
-                { name: 'F', value: item.f || 0 }
+                { name: 'A', value: item.a },
+                { name: 'B', value: item.b },
+                { name: 'C', value: item.c },
+                { name: 'D', value: item.d },
+                { name: 'E', value: item.e },
+                { name: 'F', value: item.f }
             ]
         } else {
             return [
-                { name: 'Passed', value: item.passed || 0 },
-                { name: 'Failed', value: item.failed || 0 }
+                { name: 'Passed', value: item.passed },
+                { name: 'Failed', value: item.failed }
             ]
         }
     })

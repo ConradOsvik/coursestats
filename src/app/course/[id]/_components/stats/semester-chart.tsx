@@ -2,7 +2,7 @@
 
 import { selectedSemesterAtom } from '@/stores'
 import { useAtom } from 'jotai'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo } from 'react'
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts'
 
 import {

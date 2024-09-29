@@ -25,23 +25,28 @@ async function FailureChartWrapper({ id }: { id: string }) {
         )
 
     const chartData = data.map((item) => {
-        const totalGrades =
-            (item.a ?? 0) +
-            (item.b ?? 0) +
-            (item.c ?? 0) +
-            (item.d ?? 0) +
-            (item.e ?? 0) +
-            (item.f ?? 0)
-        const failurePercentage =
-            totalGrades > 0
-                ? (item.f ?? 0) / totalGrades
-                : (item.failed ?? 0) / ((item.passed ?? 0) + (item.failed ?? 0))
-        const roundedFailurePercentage =
-            Math.round(failurePercentage * 1000) / 10
+        const isGraded =
+            item.a !== 0 ||
+            item.b !== 0 ||
+            item.c !== 0 ||
+            item.d !== 0 ||
+            item.e !== 0 ||
+            item.f !== 0
+
+        let failurePercentage: number = 0
+
+        if (isGraded) {
+            const totalGrades =
+                item.a + item.b + item.c + item.d + item.e + item.f
+
+            failurePercentage = item.f / totalGrades
+        } else {
+            failurePercentage = item.failed / (item.passed + item.failed)
+        }
 
         return {
             name: `${item.semester.charAt(0).toUpperCase() + item.semester.slice(1)} ${item.year.toString().slice(-2)}`,
-            value: roundedFailurePercentage
+            value: Math.round(failurePercentage * 1000) / 10
         }
     })
 

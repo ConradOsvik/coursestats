@@ -31,14 +31,14 @@ interface SemesterData {
 interface FormattedSemesterData {
     semester: Semester
     year: number
-    a: number | null
-    b: number | null
-    c: number | null
-    d: number | null
-    e: number | null
-    f: number | null
-    passed: number | null
-    failed: number | null
+    a: number
+    b: number
+    c: number
+    d: number
+    e: number
+    f: number
+    passed: number
+    failed: number
 }
 
 const getSemesterId = (semester: Semester): number => {
@@ -138,14 +138,14 @@ const initializeSemesterData = (
 ): FormattedSemesterData => ({
     year,
     semester,
-    a: null,
-    b: null,
-    c: null,
-    d: null,
-    e: null,
-    f: null,
-    passed: null,
-    failed: null
+    a: 0,
+    b: 0,
+    c: 0,
+    d: 0,
+    e: 0,
+    f: 0,
+    passed: 0,
+    failed: 0
 })
 
 const trimCourseCode = (courseCode: string) => {

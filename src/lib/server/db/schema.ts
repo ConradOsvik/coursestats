@@ -30,14 +30,14 @@ export const semesters = coursestats('semester', {
         .references(() => courses.id, { onDelete: 'cascade' }),
     year: integer('year').notNull(),
     semester: text('semester', { enum: ['fall', 'spring'] }).notNull(),
-    a: integer('a'),
-    b: integer('b'),
-    c: integer('c'),
-    d: integer('d'),
-    e: integer('e'),
-    f: integer('f'),
-    passed: integer('passed'),
-    failed: integer('failed')
+    a: integer('a').notNull(),
+    b: integer('b').notNull(),
+    c: integer('c').notNull(),
+    d: integer('d').notNull(),
+    e: integer('e').notNull(),
+    f: integer('f').notNull(),
+    passed: integer('passed').notNull(),
+    failed: integer('failed').notNull()
 })
 
 export const ratings = coursestats(

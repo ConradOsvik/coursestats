@@ -24,42 +24,45 @@ async function StatsWrapper({ id }: { id: string }) {
         )
 
     const statsData = data.map((item) => {
-        const grades = [item.a, item.b, item.c, item.d, item.e, item.f]
-        const gradeValues = [5, 4, 3, 2, 1, 0]
-        const validGrades = grades.filter((grade) => grade !== null)
+        const isGraded =
+            item.a !== 0 ||
+            item.b !== 0 ||
+            item.c !== 0 ||
+            item.d !== 0 ||
+            item.e !== 0 ||
+            item.f !== 0
 
-        let average: number | undefined
-        if (validGrades.length > 0) {
-            const totalGrades = validGrades.reduce(
-                (acc, curr) => acc + (curr ?? 0),
+        let average: number | undefined = undefined
+
+        if (isGraded) {
+            const grades = [item.a, item.b, item.c, item.d, item.e, item.f]
+            const gradeValues = [5, 4, 3, 2, 1, 0]
+
+            const weightedSum = grades.reduce(
+                (acc, grade, index) => acc + grade * gradeValues[index],
                 0
             )
-            const weightedSum = validGrades.reduce((acc, grade, index) => {
-                return acc + (grade !== null ? grade * gradeValues[index] : 0)
-            }, 0)
+
+            const totalGrades = grades.reduce((acc, curr) => acc + curr, 0)
+
             average = Math.round((weightedSum / totalGrades) * 10) / 10
-        } else {
-            average = undefined
         }
 
-        const totalGrades =
-            (item.a ?? 0) +
-            (item.b ?? 0) +
-            (item.c ?? 0) +
-            (item.d ?? 0) +
-            (item.e ?? 0) +
-            (item.f ?? 0)
-        const failurePercentage =
-            totalGrades > 0
-                ? (item.f ?? 0) / totalGrades
-                : (item.failed ?? 0) / ((item.passed ?? 0) + (item.failed ?? 0))
-        const roundedFailurePercentage =
-            Math.round(failurePercentage * 1000) / 10
+        let failurePercentage: number = 0
+
+        if (isGraded) {
+            const totalGrades =
+                item.a + item.b + item.c + item.d + item.e + item.f
+
+            failurePercentage = item.f / totalGrades
+        } else {
+            failurePercentage = item.failed / (item.passed + item.failed)
+        }
 
         return {
             name: `${item.semester.charAt(0).toUpperCase() + item.semester.slice(1)} ${item.year.toString().slice(-2)}`,
-            average: average,
-            failurePercentage: roundedFailurePercentage
+            average,
+            failurePercentage
         }
     })
 

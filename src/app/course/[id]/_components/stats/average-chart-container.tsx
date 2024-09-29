@@ -25,22 +25,28 @@ async function AverageChartWrapper({ id }: { id: string }) {
         )
 
     const chartData = data.map((item) => {
-        const grades = [item.a, item.b, item.c, item.d, item.e, item.f]
-        const gradeValues = [5, 4, 3, 2, 1, 0]
-        const validGrades = grades.filter((grade) => grade !== null)
+        const isGraded =
+            item.a !== 0 ||
+            item.b !== 0 ||
+            item.c !== 0 ||
+            item.d !== 0 ||
+            item.e !== 0 ||
+            item.f !== 0
 
-        let average: number | undefined
-        if (validGrades.length > 0) {
-            const totalGrades = validGrades.reduce(
-                (acc, curr) => acc + (curr ?? 0),
+        let average: number | undefined = undefined
+
+        if (isGraded) {
+            const grades = [item.a, item.b, item.c, item.d, item.e, item.f]
+            const gradeValues = [5, 4, 3, 2, 1, 0]
+
+            const weightedSum = grades.reduce(
+                (acc, grade, index) => acc + grade * gradeValues[index],
                 0
             )
-            const weightedSum = validGrades.reduce((acc, grade, index) => {
-                return acc + (grade !== null ? grade * gradeValues[index] : 0)
-            }, 0)
+
+            const totalGrades = grades.reduce((acc, curr) => acc + curr, 0)
+
             average = Math.round((weightedSum / totalGrades) * 10) / 10
-        } else {
-            average = undefined
         }
 
         return {
