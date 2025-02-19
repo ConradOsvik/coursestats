@@ -1,43 +1,34 @@
-import { getCourse } from '@/lib/server/db/courses/get-course'
+import { api, HydrateClient, prefetch } from "~/trpc/server";
+import GradeChartContainer from "./_components/grade-chart";
 
-import BookVotes from './_components/book-votes/book-votes'
-import Rating from './_components/rating/rating'
-import AverageChartContainer from './_components/stats/average-chart-container'
-import FailureChartContainer from './_components/stats/failure-chart-container'
-import SemesterChartContainer from './_components/stats/semester-chart-container'
-import StatsContainer from './_components/stats/stats-container'
-import Title from './_components/title'
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+
+  return {
+    title: `coursestats / ${id.toUpperCase()}`,
+    description: `statistics for ${id.toUpperCase()}`,
+  };
+}
 
 export default async function CoursePage({
-    params: { id }
+  params,
 }: {
-    params: { id: string }
+  params: Promise<{ id: string }>;
 }) {
-    const course = await getCourse(id)
+  const { id } = await params;
 
-    return (
-        <main className='grid w-full max-w-5xl grid-cols-2'>
-            <div className='col-span-2 w-full'>
-                <Title name={course.name} id={course.id} />
-            </div>
-            <div className='h-80 w-full'>
-                <Rating id={id} />
-            </div>
-            <div className='h-80 w-full'>
-                <BookVotes id={id} />
-            </div>
-            <div className='h-80 w-full'>
-                <SemesterChartContainer id={id} />
-            </div>
-            <div className='h-80 w-full'>
-                <StatsContainer id={id} />
-            </div>
-            <div className='col-span-2 h-80 w-full'>
-                <AverageChartContainer id={id} />
-            </div>
-            <div className='col-span-2 h-80 w-full'>
-                <FailureChartContainer id={id} />
-            </div>
-        </main>
-    )
+  prefetch(api.course.getCourse.queryOptions({ id }));
+
+  return (
+    <HydrateClient>
+      <main className="flex w-full max-w-5xl flex-col items-start justify-start">
+        Course {id}
+        <GradeChartContainer />
+      </main>
+    </HydrateClient>
+  );
 }

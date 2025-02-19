@@ -1,25 +1,16 @@
-import Link from 'next/link'
-
-import { cn } from '@/lib/utils'
-
-import { buttonVariants } from '@/components/ui/button'
+import Link from "next/link";
 
 export default function NotFound() {
-    return (
-        <main className='flex h-full flex-col items-center justify-center'>
-            <h1 className='py-2 text-5xl'>Not Found</h1>
-            <p className='py-2 text-lg'>
-                We couldn&rsquo;t find the course you are looking for
-            </p>
-            <Link
-                href='/'
-                className={cn(
-                    buttonVariants(),
-                    'no-underline dark:text-primary-foreground'
-                )}
-            >
-                Return Home
-            </Link>
-        </main>
-    )
+  return (
+    <main className="flex flex-grow flex-col items-center justify-center">
+      <h2 className="text-3xl font-semibold">404 - Not Found</h2>
+      <p className="mt-6">Could not find the course you are looking for</p>
+      <Link
+        href="/"
+        className="mt-2 text-muted-foreground hover:text-foreground"
+      >
+        Return home
+      </Link>
+    </main>
+  );
 }
