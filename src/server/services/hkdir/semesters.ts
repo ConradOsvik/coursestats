@@ -1,5 +1,55 @@
 import { api, createFilter } from "./api";
 import { getYear, isBefore, startOfDay } from "date-fns";
+import { SEMESTERS } from "~/lib/constants";
+
+interface SemesterData {
+  Emnekode: string;
+  Årstall: string;
+  Semester: string;
+  Semesternavn: string;
+  Karakter: string;
+  "Antall kandidater totalt": string;
+  "Antall kandidater kvinner": string;
+  "Antall kandidater menn": string;
+}
+
+interface FormattedGradeData {
+  grade: string;
+  count: number;
+  womenCount: number;
+  menCount: number;
+}
+
+interface FormattedSemesterData {
+  year: number;
+  semester: (typeof SEMESTERS)[number];
+  grades: FormattedGradeData[];
+}
+
+const formatSemesterData = (data: SemesterData[]): FormattedSemesterData[] => {
+  const semesterMap = new Map<string, FormattedSemesterData>();
+
+  data.forEach((entry) => {
+    const year = parseInt(entry.Årstall, 10);
+    const semester = entry.Semester === "1" ? "spring" : "fall";
+    const key = `${year}-${semester}`;
+
+    const grade = {
+      grade: entry.Karakter,
+      count: parseInt(entry["Antall kandidater totalt"], 10) || 0,
+      womenCount: parseInt(entry["Antall kandidater kvinner"], 10) || 0,
+      menCount: parseInt(entry["Antall kandidater menn"], 10) || 0,
+    };
+
+    if (!semesterMap.has(key)) {
+      semesterMap.set(key, { year, semester, grades: [grade] });
+    } else {
+      semesterMap.get(key)!.grades.push(grade);
+    }
+  });
+
+  return Array.from(semesterMap.values());
+};
 
 const getLatestSemesterId = () => {
   const currentDate = new Date();
@@ -19,11 +69,16 @@ const getLatestSemesterId = () => {
   return { id: 3, year: currentYear };
 };
 
-export const getLatestSemester = async (institution: number, id: string) => {
-  const { id: semesterId, year } = getLatestSemesterId();
+export const getLatestSemesterData = async (
+  institution: number,
+  code: string,
+) => {
+  const { id, year } = getLatestSemesterId();
 
-  const data = await api({
+  const data = await api<SemesterData[]>({
     tabell_id: 308,
+    groupBy: ["Emnekode", "Årstall", "Semester", "Karakter"],
+    sortBy: ["Årstall", "Semester", "Karakter"],
     filter: [
       createFilter({
         variabel: "Institusjonskode",
@@ -33,7 +88,7 @@ export const getLatestSemester = async (institution: number, id: string) => {
       createFilter({
         variabel: "Emnekode",
         filter: "like",
-        values: [`${id}-%`],
+        values: [`${code}-%`],
       }),
       createFilter({
         variabel: "Årstall",
@@ -43,15 +98,22 @@ export const getLatestSemester = async (institution: number, id: string) => {
       createFilter({
         variabel: "Semester",
         filter: "item",
-        values: [String(semesterId)],
+        values: [String(id)],
       }),
     ],
   });
+
+  return formatSemesterData(data);
 };
 
-export const getAllSemesters = async (institution: number, id: string) => {
-  const data = await api({
+export const getAllSemestersData = async (
+  institution: number,
+  code: string,
+) => {
+  const data = await api<SemesterData[]>({
     tabell_id: 308,
+    groupBy: ["Emnekode", "Årstall", "Semester", "Karakter"],
+    sortBy: ["Årstall", "Semester", "Karakter"],
     filter: [
       createFilter({
         variabel: "Institusjonskode",
@@ -61,7 +123,7 @@ export const getAllSemesters = async (institution: number, id: string) => {
       createFilter({
         variabel: "Emnekode",
         filter: "like",
-        values: [`${id}-%`],
+        values: [`${code}-%`],
       }),
       createFilter({
         variabel: "Semester",
@@ -70,4 +132,6 @@ export const getAllSemesters = async (institution: number, id: string) => {
       }),
     ],
   });
+
+  return formatSemesterData(data);
 };

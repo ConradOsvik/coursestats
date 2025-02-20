@@ -23,21 +23,35 @@ export const createFilter = (opts: FilterOptions): Filter => ({
   selection: {
     filter: opts.filter,
     values: opts.values,
-    exclude: opts.exclude,
+    exclude: opts.exclude ?? [],
   },
 });
 
-interface ApiOptions {
+interface AgregateOptions {
   tabell_id: number;
   api_versjon?: number;
   statuslinje?: string;
   begrensning?: string;
   kodetekst?: string;
   desimal_separator?: string;
-  groupBy?: string[];
+  groupBy: string[];
   sortBy?: string[];
-  filter?: Filter[];
+  filter: Filter[];
 }
+
+interface ListOptions {
+  tabell_id: number;
+  api_versjon?: number;
+  statuslinje?: string;
+  begrensning?: string;
+  kodetekst?: string;
+  desimal_separator?: string;
+  variabler: string[];
+  sortBy?: string[];
+  filter: Filter[];
+}
+
+type ApiOptions = AgregateOptions | ListOptions;
 
 const defaultOptions = {
   api_versjon: 1,
