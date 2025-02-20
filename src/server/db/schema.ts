@@ -1,11 +1,13 @@
 import { relations } from "drizzle-orm";
 import {
   int,
+  real,
   sqliteTableCreator,
   text,
   uniqueIndex,
 } from "drizzle-orm/sqlite-core";
 import { ulid } from "ulid";
+import { SEMESTERS, INSTITUTIONS } from "~/lib/constants";
 
 export const createTable = sqliteTableCreator((name) => `coursestats_${name}`);
 
@@ -15,9 +17,14 @@ export const courses = createTable(
     id: text("id")
       .primaryKey()
       .$defaultFn(() => ulid()),
-    institution: text("institution").notNull(),
+    institution: text("institution", {
+      enum: INSTITUTIONS.map((inst) => inst.initial) as [string, ...string[]],
+    }).notNull(),
+    department: text("department").notNull(),
     code: text("code").notNull(),
     name: text("name").notNull(),
+    credits: real("credits").notNull(),
+    lang: text("lang").notNull(),
   },
   (courses) => ({
     idx: uniqueIndex("course_unique_idx").on(courses.institution, courses.code),
@@ -38,7 +45,7 @@ export const semesters = createTable(
       .notNull()
       .references(() => courses.id, { onDelete: "cascade" }),
     year: int("year").notNull(),
-    semester: text("semester", { enum: ["fall", "spring"] }).notNull(),
+    semester: text("semester", { enum: SEMESTERS }).notNull(),
   },
   (semester) => ({
     idx: uniqueIndex("semester_unique_idx").on(
