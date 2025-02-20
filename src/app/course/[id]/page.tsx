@@ -21,7 +21,9 @@ export default async function CoursePage({
 }) {
   const { id } = await params;
 
-  prefetch(api.course.getCourse.queryOptions({ id }));
+  prefetch(
+    api.course.getCourse.queryOptions({ institution: "NTNU", code: id }),
+  );
 
   return (
     <HydrateClient>

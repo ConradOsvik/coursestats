@@ -23,7 +23,7 @@ function GradeChart() {
 
   const api = useTRPC();
   const { data: course } = useSuspenseQuery(
-    api.course.getCourse.queryOptions({ id }),
+    api.course.getCourse.queryOptions({ institution: "NTNU", code: id }),
   );
 
   const [selectedSemester, setSelectedSemester] = useAtom(selectedSemesterAtom);
