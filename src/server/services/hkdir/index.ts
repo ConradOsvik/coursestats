@@ -1,43 +1,70 @@
-import { ulid } from "ulid";
-import { getCourseData } from "./courses";
-import { getAllSemestersData } from "./semesters";
+import {
+  getCourseData,
+  prepareCourseForDb,
+  type DbCourseData,
+} from "./courses";
+import {
+  getAllSemestersData,
+  prepareSemesterDataForDb,
+  type DbSemesterData,
+  type DbGradeData,
+} from "./semesters";
+
+export interface CourseWithSemestersResult {
+  course: DbCourseData;
+  semesters: DbSemesterData[];
+  grades: DbGradeData[];
+  fullSemesters: Array<DbSemesterData & { grades: DbGradeData[] }>;
+}
 
 export const getCourseAndSemestersData = async (
   institution: number,
   code: string,
-) => {
-  const [courseData, semestersData] = await Promise.all([
+): Promise<CourseWithSemestersResult> => {
+  const [rawCourseData, rawSemestersData] = await Promise.all([
     getCourseData(institution, code),
     getAllSemestersData(institution, code),
   ]);
 
-  const courseId = ulid();
-  const course = {
-    ...courseData,
-    id: courseId,
+  const course = prepareCourseForDb(rawCourseData);
+
+  const { semesters, grades, fullSemesters } = prepareSemesterDataForDb(
+    rawSemestersData,
+    course.id,
+  );
+
+  return {
+    course,
+    semesters,
+    grades,
+    fullSemesters,
   };
+};
 
-  const semestersWithGrades = semestersData.map((semester) => {
-    const semesterId = ulid();
-    const formattedGrades = semester.grades.map((grade) => ({
-      ...grade,
-      semesterId,
-      id: ulid(),
-    }));
+export const getLatestSemesterForCourse = async (
+  institution: number,
+  code: string,
+  courseId: string,
+): Promise<{
+  semesters: DbSemesterData[];
+  grades: DbGradeData[];
+  fullSemesters: Array<DbSemesterData & { grades: DbGradeData[] }>;
+}> => {
+  const rawSemestersData = await getAllSemestersData(institution, code);
 
+  const latestSemester = [...rawSemestersData].sort((a, b) => {
+    if (a.year !== b.year) return b.year - a.year;
+    const semValue = (sem: string) => (sem === "spring" ? 1 : 3);
+    return semValue(b.semester) - semValue(a.semester);
+  })[0];
+
+  if (!latestSemester) {
     return {
-      semester: semester.semester,
-      year: semester.year,
-      courseId,
-      id: semesterId,
-      grades: formattedGrades,
+      semesters: [],
+      grades: [],
+      fullSemesters: [],
     };
-  });
+  }
 
-  const semesters = semestersWithGrades.map(({ grades, ...rest }) => ({
-    ...rest,
-  }));
-  const grades = semestersWithGrades.map((semester) => semester.grades).flat();
-
-  return { course, semesters, grades };
+  return prepareSemesterDataForDb([latestSemester], courseId);
 };

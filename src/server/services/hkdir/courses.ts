@@ -1,4 +1,5 @@
 import { api, createFilter } from "./api";
+import { ulid } from "ulid";
 
 interface CourseData {
   Institusjonskode: string;
@@ -12,13 +13,17 @@ interface CourseData {
   Navn: string;
 }
 
-interface FormattedCourseData {
+export interface FormattedCourseData {
   institution: string;
   department: string;
   code: string;
   name: string;
   credits: number;
   lang: string;
+}
+
+export interface DbCourseData extends FormattedCourseData {
+  id: string;
 }
 
 const institutionInitials: Record<string, string> = {
@@ -30,9 +35,9 @@ const langs: Record<string, string> = {
   ENG: "EN",
 };
 
-const formatCourseData = (data: CourseData[]): FormattedCourseData => {
+const parseCourseData = (data: CourseData[]): FormattedCourseData | null => {
   const last = data[data.length - 1];
-  if (!last) throw new Error("Course not found");
+  if (!last) return null;
 
   const { Institusjonsnavn, Avdelingsnavn, Emnekode, Emnenavn, Studiepoeng } =
     last;
@@ -47,7 +52,10 @@ const formatCourseData = (data: CourseData[]): FormattedCourseData => {
   };
 };
 
-export const getCourseData = async (institution: number, code: string) => {
+export const getCourseData = async (
+  institution: number,
+  code: string,
+): Promise<FormattedCourseData> => {
   const data = await api<CourseData[]>({
     tabell_id: 208,
     variabler: [
@@ -77,5 +85,17 @@ export const getCourseData = async (institution: number, code: string) => {
     ],
   });
 
-  return formatCourseData(data);
+  const courseData = parseCourseData(data);
+  if (!courseData) throw new Error("Course not found");
+
+  return courseData;
+};
+
+export const prepareCourseForDb = (
+  course: FormattedCourseData,
+): DbCourseData => {
+  return {
+    ...course,
+    id: ulid(),
+  };
 };
