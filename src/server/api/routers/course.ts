@@ -27,15 +27,20 @@ export const courseRouter = createTRPCRouter({
         return course;
       }
 
-      const institutionId = INSTITUTIONS.find(
+      const institutionObj = INSTITUTIONS.find(
         (inst) => inst.initial === institution,
-      )!.id;
+      );
+
+      if (!institutionObj) {
+        throw new Error(`Institution not found: ${institution}`);
+      }
 
       const {
         course: newCourse,
         semesters: newSemesters,
         grades: newGrades,
-      } = await getCourseAndSemestersData(institutionId, code);
+        fullSemesters,
+      } = await getCourseAndSemestersData(institutionObj.id, code);
 
       await Promise.all([
         ctx.db.insert(courses).values(newCourse).onConflictDoNothing(),
@@ -45,12 +50,7 @@ export const courseRouter = createTRPCRouter({
 
       return {
         ...newCourse,
-        semesters: newSemesters.map((semesters) => ({
-          ...semesters,
-          grades: newGrades.filter(
-            (grade) => grade.semesterId === semesters.id,
-          ),
-        })),
+        semesters: fullSemesters,
       };
     }),
 });

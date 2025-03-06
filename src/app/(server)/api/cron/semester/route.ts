@@ -1,7 +1,12 @@
 import { NextResponse } from "next/server";
+import { INSTITUTIONS } from "~/lib/constants";
 import { db } from "~/server/db";
 import { grades, semesters } from "~/server/db/schema";
-import { getSemester } from "~/server/services/hkdir/get-semester";
+import { getLatestSemesterForCourse } from "~/server/services/hkdir";
+import type {
+  DbSemesterData,
+  DbGradeData,
+} from "~/server/services/hkdir/semesters";
 
 export async function GET() {
   const today = new Date();
@@ -15,37 +20,109 @@ export async function GET() {
     );
   }
 
-  const semester = month === 10 ? "spring" : "fall";
-  const year = month === 10 ? today.getFullYear() : today.getFullYear() - 1;
-
   try {
-    const courseIds = await db.query.courses.findMany({
+    const courses = await db.query.courses.findMany({
       columns: {
         id: true,
+        institution: true,
+        code: true,
       },
     });
 
-    const semesterData = await Promise.all(
-      courseIds.map(async ({ id }) => {
-        const data = await getSemester(id, year, semester);
+    const semesterResults = await Promise.all(
+      courses.map(async ({ id: courseId, institution, code }) => {
+        try {
+          const institutionObj = INSTITUTIONS.find(
+            (inst) => inst.initial === institution,
+          );
 
-        return data;
+          if (!institutionObj || !courseId) {
+            console.error(`Issue with course: ${institution}/${code}`);
+            return null;
+          }
+
+          return await getLatestSemesterForCourse(
+            institutionObj.id,
+            code,
+            courseId,
+          );
+        } catch (error) {
+          console.error(
+            `Error processing course ${institution}/${code}:`,
+            error,
+          );
+          return null;
+        }
       }),
     );
 
-    await Promise.all([
-      db
-        .insert(semesters)
-        .values(semesterData.flatMap((data) => data.semesters))
-        .onConflictDoNothing(),
-      db
-        .insert(grades)
-        .values(semesterData.flatMap((data) => data.grades))
-        .onConflictDoNothing(),
-    ]);
+    // Type for valid semester results
+    type ValidSemesterResult = {
+      semesters: DbSemesterData[];
+      grades: DbGradeData[];
+      fullSemesters: Array<DbSemesterData & { grades: DbGradeData[] }>;
+    };
 
-    return NextResponse.json({ success: true });
-  } catch {
-    return NextResponse.json({ error: "An error occurred" }, { status: 500 });
+    // Filter out null results and prepare data for insertion
+    const validResults = semesterResults.filter(
+      (result): result is ValidSemesterResult =>
+        result !== null &&
+        Array.isArray(result.semesters) &&
+        Array.isArray(result.grades),
+    );
+
+    // Collect all semesters and grades for batch insertion
+    const allSemesters = validResults.flatMap((result) => result.semesters);
+    const allGrades = validResults.flatMap((result) => result.grades);
+
+    // Only insert if we have data
+    if (allSemesters.length > 0 || allGrades.length > 0) {
+      try {
+        await Promise.all([
+          // Insert semesters (if any)
+          allSemesters.length > 0
+            ? db.insert(semesters).values(allSemesters).onConflictDoNothing()
+            : Promise.resolve(),
+
+          // Insert grades (if any)
+          allGrades.length > 0
+            ? db.insert(grades).values(allGrades).onConflictDoNothing()
+            : Promise.resolve(),
+        ]);
+
+        console.log(
+          `Successfully updated: ${allSemesters.length} semesters, ${allGrades.length} grades`,
+        );
+      } catch (dbError) {
+        console.error("Database insertion error:", dbError);
+        return NextResponse.json(
+          {
+            error: "Failed to insert data into database",
+            details: String(dbError),
+          },
+          { status: 500 },
+        );
+      }
+    } else {
+      console.log("No new data to insert");
+    }
+
+    return NextResponse.json({
+      success: true,
+      updated: {
+        courses: courses.length,
+        semesters: allSemesters.length,
+        grades: allGrades.length,
+      },
+    });
+  } catch (error) {
+    console.error("Error updating semester data:", error);
+    return NextResponse.json(
+      {
+        error: "An error occurred",
+        details: String(error),
+      },
+      { status: 500 },
+    );
   }
 }
