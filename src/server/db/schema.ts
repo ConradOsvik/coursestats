@@ -7,9 +7,31 @@ import {
   uniqueIndex,
 } from "drizzle-orm/sqlite-core";
 import { ulid } from "ulid";
-import { SEMESTERS, INSTITUTIONS } from "~/lib/constants";
+import { SEMESTERS } from "~/lib/constants";
 
 export const createTable = sqliteTableCreator((name) => `coursestats_${name}`);
+
+export const institutions = createTable(
+  "institution",
+  {
+    id: int("id").primaryKey(),
+    code: text("code").notNull(),
+    name: text("name").notNull(),
+    createdAt: int("created_at", { mode: "timestamp" })
+      .notNull()
+      .$defaultFn(() => new Date()),
+    updatedAt: int("updated_at", { mode: "timestamp" })
+      .notNull()
+      .$defaultFn(() => new Date()),
+  },
+  (institution) => ({
+    idx: uniqueIndex("institution_unique_idx").on(institution.code),
+  }),
+);
+
+export const institutionsRelations = relations(institutions, ({ many }) => ({
+  courses: many(courses),
+}));
 
 export const courses = createTable(
   "course",
@@ -17,21 +39,34 @@ export const courses = createTable(
     id: text("id")
       .primaryKey()
       .$defaultFn(() => ulid()),
-    institution: text("institution", {
-      enum: INSTITUTIONS.map((inst) => inst.initial) as [string, ...string[]],
-    }).notNull(),
+    institutionId: int("institution_id")
+      .notNull()
+      .references(() => institutions.id, { onDelete: "cascade" }),
     department: text("department").notNull(),
     code: text("code").notNull(),
     name: text("name").notNull(),
     credits: real("credits").notNull(),
     lang: text("lang").notNull(),
+    createdAt: int("created_at", { mode: "timestamp" })
+      .notNull()
+      .$defaultFn(() => new Date()),
+    updatedAt: int("updated_at", { mode: "timestamp" })
+      .notNull()
+      .$defaultFn(() => new Date()),
   },
   (courses) => ({
-    idx: uniqueIndex("course_unique_idx").on(courses.institution, courses.code),
+    idx: uniqueIndex("course_unique_idx").on(
+      courses.institutionId,
+      courses.code,
+    ),
   }),
 );
 
-export const coursesRelations = relations(courses, ({ many }) => ({
+export const coursesRelations = relations(courses, ({ one, many }) => ({
+  institution: one(institutions, {
+    fields: [courses.institutionId],
+    references: [institutions.id],
+  }),
   semesters: many(semesters),
 }));
 
@@ -46,6 +81,12 @@ export const semesters = createTable(
       .references(() => courses.id, { onDelete: "cascade" }),
     year: int("year").notNull(),
     semester: text("semester", { enum: SEMESTERS }).notNull(),
+    createdAt: int("created_at", { mode: "timestamp" })
+      .notNull()
+      .$defaultFn(() => new Date()),
+    updatedAt: int("updated_at", { mode: "timestamp" })
+      .notNull()
+      .$defaultFn(() => new Date()),
   },
   (semester) => ({
     idx: uniqueIndex("semester_unique_idx").on(
@@ -77,6 +118,12 @@ export const grades = createTable(
     count: int("count").notNull(),
     womenCount: int("women_count").notNull(),
     menCount: int("men_count").notNull(),
+    createdAt: int("created_at", { mode: "timestamp" })
+      .notNull()
+      .$defaultFn(() => new Date()),
+    updatedAt: int("updated_at", { mode: "timestamp" })
+      .notNull()
+      .$defaultFn(() => new Date()),
   },
   (grade) => ({
     idx: uniqueIndex("grade_unique_idx").on(grade.semesterId, grade.grade),

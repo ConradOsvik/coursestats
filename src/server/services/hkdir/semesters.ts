@@ -1,6 +1,6 @@
 import { api, createFilter } from "./api";
 import { getYear, isBefore, startOfDay } from "date-fns";
-import { type SEMESTERS } from "~/lib/constants";
+import type { SEMESTERS } from "~/lib/constants";
 import { ulid } from "ulid";
 
 interface SemesterData {
@@ -46,24 +46,27 @@ export interface DbGradeData {
 const parseSemesterData = (data: SemesterData[]): FormattedSemesterData[] => {
   const semesterMap = new Map<string, FormattedSemesterData>();
 
-  data.forEach((entry) => {
-    const year = parseInt(entry.Årstall, 10);
+  for (const entry of data) {
+    const year = Number.parseInt(entry.Årstall, 10);
     const semester = entry.Semester === "1" ? "spring" : "fall";
     const key = `${year}-${semester}`;
 
     const grade = {
       grade: entry.Karakter,
-      count: parseInt(entry["Antall kandidater totalt"], 10) || 0,
-      womenCount: parseInt(entry["Antall kandidater kvinner"], 10) || 0,
-      menCount: parseInt(entry["Antall kandidater menn"], 10) || 0,
+      count: Number.parseInt(entry["Antall kandidater totalt"], 10) || 0,
+      womenCount: Number.parseInt(entry["Antall kandidater kvinner"], 10) || 0,
+      menCount: Number.parseInt(entry["Antall kandidater menn"], 10) || 0,
     };
 
     if (!semesterMap.has(key)) {
       semesterMap.set(key, { year, semester, grades: [grade] });
     } else {
-      semesterMap.get(key)!.grades.push(grade);
+      const existingSemester = semesterMap.get(key);
+      if (existingSemester) {
+        existingSemester.grades.push(grade);
+      }
     }
-  });
+  }
 
   return Array.from(semesterMap.values());
 };

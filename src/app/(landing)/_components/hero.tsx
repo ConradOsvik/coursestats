@@ -1,10 +1,29 @@
+import { FlickeringGrid } from "~/components/magicui/flickering-grid";
+import { WordRotate } from "~/components/magicui/word-rotate";
 import Search from "~/components/search";
 
 export default function Hero() {
   return (
-    <div className="flex flex-grow flex-col items-center justify-center">
-      <h1 className="mb-6 text-4xl font-extrabold">Search a course at NTNU</h1>
-      <Search />
+    <div className="flex w-full flex-grow flex-col items-center justify-center">
+      <div className="relative flex h-[800px] w-[800px] items-center justify-center overflow-hidden">
+        <FlickeringGrid
+          className="absolute inset-0 z-0 [mask-image:radial-gradient(450px_circle_at_center,white,transparent)]"
+          squareSize={4}
+          gridGap={6}
+          maxOpacity={0.5}
+          color="#737373"
+          flickerChance={0.1}
+          height={800}
+          width={800}
+        />
+        <div className="z-10">
+          <h1 className="mb-6 flex w-[450px] items-center justify-start text-4xl font-extrabold">
+            Search a course at{" "}
+            <WordRotate className="ml-2" words={["NTNU", "UIO", "UIB"]} />
+          </h1>
+          <Search />
+        </div>
+      </div>
     </div>
   );
 }

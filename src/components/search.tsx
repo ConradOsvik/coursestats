@@ -1,6 +1,5 @@
 "use client";
 
-import { MagnifyingGlassIcon, XMarkIcon } from "@heroicons/react/24/solid";
 import { useRouter } from "next/navigation";
 import {
   type ChangeEvent,
@@ -10,6 +9,16 @@ import {
   useState,
 } from "react";
 import { useTypewriter } from "react-simple-typewriter";
+import { Input } from "./ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
 
 export default function Search() {
   const [search, setSearch] = useState("");
@@ -38,30 +47,31 @@ export default function Search() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex items-center justify-center">
-      <div className="group m-2 flex w-96 items-center justify-center overflow-hidden rounded-full bg-neutral-100 [&:has(:not(button):focus)]:ring-3 [&:has(:not(button):focus)]:ring-blue-500/50">
-        <label htmlFor="search" className="bg-neutral-100 p-4 outline-none">
-          <MagnifyingGlassIcon className="size-6" />
-        </label>
-        <input
-          id="search"
-          type="text"
-          placeholder={placeholder}
-          className="w-full bg-transparent py-3.5 text-lg uppercase outline-none"
-          value={search}
-          onChange={handleInputChange}
-          ref={inputRef}
-        />
-        {search.length > 0 && (
-          <button
-            type="button"
-            className="rounded-full bg-neutral-100 p-4 outline-none focus:ring-3 focus:ring-inset focus:ring-blue-500/50"
-            onClick={() => setSearch("")}
-          >
-            <XMarkIcon className="size-6" />
-          </button>
-        )}
-      </div>
+    <form
+      onSubmit={handleSubmit}
+      className="bg-background flex rounded-md shadow-xs"
+    >
+      <Input
+        className="-me-px rounded-e-none shadow-none focus-visible:z-10"
+        placeholder={placeholder}
+        value={search}
+        ref={inputRef}
+        type="text"
+        onChange={handleInputChange}
+      />
+      <Select defaultValue="NTNU">
+        <SelectTrigger className="text-muted-foreground hover:text-foreground w-fit rounded-s-none shadow-none">
+          <SelectValue placeholder="Select an institution" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectGroup>
+            <SelectLabel>Institutions</SelectLabel>
+            <SelectItem value="NTNU">NTNU</SelectItem>
+            <SelectItem value="UIO">UIO</SelectItem>
+            <SelectItem value="UIB">UIB</SelectItem>
+          </SelectGroup>
+        </SelectContent>
+      </Select>
     </form>
   );
 }
