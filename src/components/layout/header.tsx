@@ -1,8 +1,8 @@
-"use client";
+'use client'
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { cn } from "~/lib/utils";
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import { cn } from '~/lib/utils'
 
 export default function Header() {
   return (
@@ -12,27 +12,27 @@ export default function Header() {
         <NavLink href="/about">About</NavLink>
       </nav>
     </header>
-  );
+  )
 }
 
 function NavLink({
   children,
-  href,
+  href
 }: {
-  children: React.ReactNode;
-  href: string;
+  children: React.ReactNode
+  href: string
 }) {
-  const pathname = usePathname();
+  const pathname = usePathname()
 
   return (
     <Link
       href={href}
       className={cn(
-        "focus:ring-3 m-2 rounded-lg p-2 text-muted-foreground outline-none hover:text-foreground focus:ring-blue-500/50",
-        pathname === href && "text-foreground",
+        'text-muted-foreground hover:text-foreground m-2 rounded-lg p-2 outline-none focus:ring-3 focus:ring-blue-500/50',
+        pathname === href && 'text-foreground'
       )}
     >
       {children}
     </Link>
-  );
+  )
 }

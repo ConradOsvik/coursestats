@@ -1,10 +1,10 @@
-import "./src/env.js";
-import type { NextConfig } from "next";
+import './src/env.js'
+import type { NextConfig } from 'next'
 
 const config: NextConfig = {
   experimental: {
-    useCache: true,
-  },
-};
+    useCache: true
+  }
+}
 
-export default config;
+export default config

@@ -1,12 +1,7 @@
-import Search from "~/components/search";
-
 export default function CourseLayout({
-  children,
+  children
 }: Readonly<{ children: React.ReactNode }>): JSX.Element {
   return (
-    <div className="flex flex-col items-center justify-start">
-      <Search />
-      {children}
-    </div>
-  );
+    <div className="flex flex-col items-center justify-start">{children}</div>
+  )
 }

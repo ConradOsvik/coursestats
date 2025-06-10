@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from 'next/link'
 
 export default function NotFound() {
   return (
@@ -7,10 +7,10 @@ export default function NotFound() {
       <p className="mt-6">Could not find the course you are looking for</p>
       <Link
         href="/"
-        className="mt-2 text-muted-foreground hover:text-foreground"
+        className="text-muted-foreground hover:text-foreground mt-2"
       >
         Return home
       </Link>
     </main>
-  );
+  )
 }

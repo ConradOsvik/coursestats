@@ -1,25 +1,42 @@
-import { unstable_cacheTag as cacheTag } from "next/cache";
-import { db } from "..";
+import { unstable_cacheTag as cacheTag } from 'next/cache'
+import { db } from '..'
+import { notFound } from 'next/navigation'
 
 export const getInstitutionsFromDb = async () => {
-  "use cache";
+  'use cache'
 
-  cacheTag("institutions");
+  cacheTag('institutions')
 
-  const institutions = await db.query.institutions.findMany();
+  const institutions = await db.query.institutions.findMany()
 
-  return institutions;
-};
+  return institutions
+}
 
 export const getInstitutionFromDb = async (id: number) => {
-  "use cache";
+  'use cache'
 
-  cacheTag("institutions");
-  cacheTag(`institution:${id}`);
+  cacheTag('institutions')
+  cacheTag(`institution:${id}`)
 
   const institution = await db.query.institutions.findFirst({
-    where: (institutions, { eq }) => eq(institutions.id, id),
-  });
+    where: (institutions, { eq }) => eq(institutions.id, id)
+  })
 
-  return institution;
-};
+  return institution
+}
+
+export const getInstitutionByShortNameFromDb = async (shortName: string) => {
+  'use cache'
+
+  cacheTag('institutions')
+  cacheTag(`institution:${shortName}`)
+
+  const institution = await db.query.institutions.findFirst({
+    where: (institutions, { eq }) => eq(institutions.shortName, shortName)
+  })
+
+  // TODO: Add fetch then fail
+  if (!institution) notFound()
+
+  return institution
+}

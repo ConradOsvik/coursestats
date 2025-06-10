@@ -1,8 +1,11 @@
-import { FlickeringGrid } from "~/components/magicui/flickering-grid";
-import { WordRotate } from "~/components/magicui/word-rotate";
-import Search from "~/components/search";
+import { FlickeringGrid } from '~/components/magicui/flickering-grid'
+import { WordRotate } from '~/components/magicui/word-rotate'
+import Search from '~/app/(landing)/_components/search'
+import { getInstitutionsFromDb } from '~/server/db/queries/institutions'
 
-export default function Hero() {
+export default async function Hero() {
+  const institutions = await getInstitutionsFromDb()
+
   return (
     <div className="flex w-full flex-grow flex-col items-center justify-center">
       <div className="relative flex h-[800px] w-[800px] items-center justify-center overflow-hidden">
@@ -17,13 +20,16 @@ export default function Hero() {
           width={800}
         />
         <div className="z-10">
-          <h1 className="mb-6 flex w-[450px] items-center justify-start text-4xl font-extrabold">
-            Search a course at{" "}
-            <WordRotate className="ml-2" words={["NTNU", "UIO", "UIB"]} />
+          <h1 className="mb-6 flex w-[490px] items-center justify-start text-4xl font-extrabold">
+            Search a course at{' '}
+            <WordRotate
+              className="ml-2"
+              words={institutions.map((institution) => institution.shortName)}
+            />
           </h1>
-          <Search />
+          <Search institutions={institutions} />
         </div>
       </div>
     </div>
-  );
+  )
 }
