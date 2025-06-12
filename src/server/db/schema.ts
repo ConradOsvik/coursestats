@@ -7,7 +7,7 @@ import {
   primaryKey,
   foreignKey
 } from 'drizzle-orm/sqlite-core'
-import { SEMESTERS } from '~/lib/constants'
+import { INSTITUTION_TYPES, SEMESTERS } from '~/lib/constants'
 
 export const createTable = sqliteTableCreator((name) => `coursestats_${name}`)
 
@@ -15,6 +15,7 @@ export const institutions = createTable('institution', {
   id: int('id').primaryKey(),
   shortName: text('short_name').notNull().unique(),
   name: text('name').notNull(),
+  type: text('type', { enum: INSTITUTION_TYPES }).notNull(),
   createdAt: int('created_at', { mode: 'timestamp' })
     .notNull()
     .$defaultFn(() => new Date()),

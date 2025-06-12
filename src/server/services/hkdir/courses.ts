@@ -1,3 +1,4 @@
+import { extractCourseCode } from '~/lib/course-utils'
 import { api, createFilter } from './api'
 
 interface CourseApiResponse {
@@ -68,7 +69,7 @@ export const getCourseFromApi = async (
       createFilter({
         variabel: 'Emnekode',
         filter: 'like',
-        values: [`${courseCode}-%`]
+        values: [`${courseCode}%`]
       }),
       createFilter({
         variabel: 'Årstall',
@@ -83,7 +84,7 @@ export const getCourseFromApi = async (
 
   return {
     institutionId,
-    code: latest.Emnekode.split('-')[0] ?? latest.Emnekode,
+    code: extractCourseCode(latest.Emnekode),
     department: latest.Avdelingsnavn,
     name: latest.Emnenavn,
     credits: Number(latest.Studiepoeng),
@@ -108,7 +109,7 @@ export const getSemestersFromApi = async (
       createFilter({
         variabel: 'Emnekode',
         filter: 'like',
-        values: [`${courseCode}-%`]
+        values: [`${courseCode}%`]
       }),
       createFilter({
         variabel: 'Semester',

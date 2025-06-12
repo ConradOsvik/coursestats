@@ -2,9 +2,13 @@ import { FlickeringGrid } from '~/components/magicui/flickering-grid'
 import { WordRotate } from '~/components/magicui/word-rotate'
 import Search from '~/app/(landing)/_components/search'
 import { getInstitutionsFromDb } from '~/server/db/queries/institutions'
+import { getInstitutionsInDisplayOrder } from '~/lib/institution-utils'
 
 export default async function Hero() {
   const institutions = await getInstitutionsFromDb()
+
+  // Get institutions in the proper display order
+  const sortedInstitutions = getInstitutionsInDisplayOrder(institutions)
 
   return (
     <div className="flex w-full flex-grow flex-col items-center justify-center">
@@ -24,7 +28,9 @@ export default async function Hero() {
             Search a course at{' '}
             <WordRotate
               className="ml-2"
-              words={institutions.map((institution) => institution.shortName)}
+              words={sortedInstitutions.map(
+                (institution) => institution.shortName
+              )}
             />
           </h1>
           <Search institutions={institutions} />

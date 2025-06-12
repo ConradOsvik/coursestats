@@ -4,6 +4,8 @@ import { db } from '..'
 import { getCourseFromApi, getSemestersFromApi } from '~/server/services/hkdir'
 import { notFound } from 'next/navigation'
 import { courses, grades, semesters } from '../schema'
+import { and, eq, or, sql } from 'drizzle-orm'
+import { isValidCourseCodeFormat } from '~/lib/course-utils'
 
 export const getCourseFromDb = async (
   institutionId: number,
@@ -14,9 +16,7 @@ export const getCourseFromDb = async (
   cacheTag('courses')
   cacheTag(`course:${institutionId}:${courseCode}`)
 
-  console.log(
-    `Fetching course ${courseCode} for institution ${institutionId} from database`
-  )
+  if (!isValidCourseCodeFormat(courseCode)) notFound()
 
   let course = await db.query.courses.findFirst({
     where: (courses, { eq, and }) =>
@@ -71,22 +71,24 @@ export const addCourse = async (institutionId: number, courseCode: string) => {
     getSemestersFromApi(institutionId, courseCode)
   ])
 
-  if (!courseData || !semesterData) {
+  if (!courseData) {
     notFound()
   }
 
-  await Promise.all([
-    db.insert(courses).values(courseData),
-    db.insert(semesters).values(
-      semesterData.map((semester) => ({
-        institutionId: semester.institutionId,
-        courseCode: semester.courseCode,
-        year: semester.year,
-        semester: semester.semester
-      }))
-    ),
-    db.insert(grades).values(
-      semesterData.flatMap((semester) =>
+  await db.transaction(async (tx) => {
+    await tx.insert(courses).values(courseData)
+
+    if (semesterData.length > 0) {
+      await tx.insert(semesters).values(
+        semesterData.map((semester) => ({
+          institutionId: semester.institutionId,
+          courseCode: semester.courseCode,
+          year: semester.year,
+          semester: semester.semester
+        }))
+      )
+
+      const allGrades = semesterData.flatMap((semester) =>
         semester.grades.map((grade) => ({
           institutionId: semester.institutionId,
           courseCode: semester.courseCode,
@@ -98,6 +100,43 @@ export const addCourse = async (institutionId: number, courseCode: string) => {
           menCount: grade.menCount
         }))
       )
+
+      if (allGrades.length > 0) {
+        await tx.insert(grades).values(allGrades)
+      }
+    }
+  })
+}
+
+export const searchCourseCodesFuzzy = async (
+  institutionId: number,
+  searchCode: string,
+  limit = 10
+) => {
+  return await db
+    .select({
+      institutionId: courses.institutionId,
+      code: courses.code,
+      name: courses.name,
+      department: courses.department,
+      similarity: sql<number>`jaro_winkler(${courses.code}, ${searchCode})`,
+      editDistance: sql<number>`levenshtein(${courses.code}, ${searchCode})`,
+      damEditDistance: sql<number>`dlevenshtein(${courses.code}, ${searchCode})`
+    })
+    .from(courses)
+    .where(
+      and(
+        eq(courses.institutionId, institutionId),
+        or(
+          sql`jaro_winkler(${courses.code}, ${searchCode}) >= 0.7`,
+          sql`levenshtein(${courses.code}, ${searchCode}) <= 2`,
+          sql`soundex(${courses.code}) = soundex(${searchCode})`
+        )
+      )
     )
-  ])
+    .orderBy(
+      sql`jaro_winkler(${courses.code}, ${searchCode}) DESC`,
+      sql`levenshtein(${courses.code}, ${searchCode}) ASC`
+    )
+    .limit(limit)
 }

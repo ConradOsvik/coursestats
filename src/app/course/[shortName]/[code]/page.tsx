@@ -1,4 +1,3 @@
-import { notFound } from 'next/navigation'
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -8,14 +7,15 @@ import {
 } from '~/components/ui/breadcrumb'
 import { getCourseFromDb } from '~/server/db/queries/courses'
 import { getInstitutionByShortNameFromDb } from '~/server/db/queries/institutions'
-import { getSemestersFromDb } from '~/server/db/queries/semesters'
 
 export async function generateMetadata({
   params
 }: {
   params: Promise<{ shortName: string; code: string }>
 }) {
-  const { shortName, code } = await params
+  const { shortName: _shortName, code: _code } = await params
+  const shortName = decodeURIComponent(_shortName)
+  const code = decodeURIComponent(_code)
 
   return {
     title: `coursestats / ${shortName} - ${code.toUpperCase()}`,
@@ -28,13 +28,13 @@ export default async function CoursePage({
 }: {
   params: Promise<{ shortName: string; code: string }>
 }) {
-  const { shortName, code } = await params
+  const { shortName: _shortName, code: _code } = await params
+  const shortName = decodeURIComponent(_shortName)
+  const code = decodeURIComponent(_code)
 
   const institution = await getInstitutionByShortNameFromDb(shortName)
 
   const course = await getCourseFromDb(institution.id, code)
-
-  console.log('course', course)
 
   return (
     <main>

@@ -1,13 +1,23 @@
 import { unstable_cacheTag as cacheTag } from 'next/cache'
+import { sql } from 'drizzle-orm'
 import { db } from '..'
+import { institutions } from '../schema'
 import { notFound } from 'next/navigation'
+import { getInstitutionsFromApi } from '~/server/services/hkdir'
 
 export const getInstitutionsFromDb = async () => {
   'use cache'
 
   cacheTag('institutions')
 
-  const institutions = await db.query.institutions.findMany()
+  let institutions = await db.query.institutions.findMany()
+
+  if (institutions.length === 0) {
+    await addInstitutions()
+    institutions = await db.query.institutions.findMany()
+
+    if (institutions.length === 0) notFound()
+  }
 
   return institutions
 }
@@ -39,4 +49,22 @@ export const getInstitutionByShortNameFromDb = async (shortName: string) => {
   if (!institution) notFound()
 
   return institution
+}
+
+export const addInstitutions = async () => {
+  const institutionsData = await getInstitutionsFromApi()
+
+  if (institutionsData.length === 0) notFound()
+
+  await db
+    .insert(institutions)
+    .values(institutionsData)
+    .onConflictDoUpdate({
+      target: institutions.id,
+      set: {
+        shortName: sql.raw(`excluded.${institutions.shortName.name}`),
+        name: sql.raw(`excluded.${institutions.name.name}`),
+        updatedAt: sql.raw(`excluded.${institutions.updatedAt.name}`)
+      }
+    })
 }
