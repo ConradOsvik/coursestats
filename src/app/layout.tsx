@@ -27,7 +27,9 @@ export default function RootLayout({
       >
         <TRPCReactProvider>
           <Header />
-          {children}
+          <div className="flex w-full max-w-4xl flex-grow flex-col items-center justify-start">
+            {children}
+          </div>
         </TRPCReactProvider>
       </body>
     </html>

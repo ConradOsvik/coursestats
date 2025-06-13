@@ -37,7 +37,7 @@ export default async function CoursePage({
   const course = await getCourseFromDb(institution.id, code)
 
   return (
-    <main>
+    <main className="flex w-full flex-col items-start justify-start">
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>

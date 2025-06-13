@@ -12,6 +12,7 @@ import {
 } from 'react'
 import { useTypewriter } from 'react-simple-typewriter'
 import { Check, ChevronsUpDown } from 'lucide-react'
+import { useQuery } from '@tanstack/react-query'
 import { Input } from '~/components/ui/input'
 import { Button } from '~/components/ui/button'
 import {
@@ -46,9 +47,7 @@ function useDebounce<T>(value: T, delay: number): T {
       setDebouncedValue(value)
     }, delay)
 
-    return () => {
-      clearTimeout(handler)
-    }
+    return () => clearTimeout(handler)
   }, [value, delay])
 
   return debouncedValue
@@ -64,6 +63,160 @@ type CourseSuggestion = {
   damEditDistance: number
 }
 
+// Separate suggestion list component
+function SuggestionList({
+  suggestions,
+  isLoading,
+  onSelect,
+  selectedIndex,
+  onMouseEnter
+}: {
+  suggestions: CourseSuggestion[]
+  isLoading: boolean
+  onSelect: (code: string) => void
+  selectedIndex: number
+  onMouseEnter: (index: number) => void
+}) {
+  if (isLoading) {
+    return (
+      <div className="text-muted-foreground p-4 text-sm">
+        Loading suggestions...
+      </div>
+    )
+  }
+
+  if (suggestions.length === 0) {
+    return (
+      <div className="text-muted-foreground p-4 text-sm">
+        No course suggestions found.
+      </div>
+    )
+  }
+
+  return (
+    <div className="max-h-[300px] overflow-y-auto">
+      <div className="p-2">
+        <div className="text-muted-foreground mb-2 text-xs font-medium">
+          Course Suggestions
+        </div>
+        {suggestions.map((course, index) => (
+          <div
+            key={`${course.institutionId}-${course.code}`}
+            className={cn(
+              'flex cursor-pointer flex-col items-start rounded-sm p-3 transition-colors',
+              'hover:bg-accent hover:text-accent-foreground',
+              selectedIndex === index && 'bg-accent text-accent-foreground'
+            )}
+            onClick={() => onSelect(course.code)}
+            onMouseEnter={() => onMouseEnter(index)}
+          >
+            <div className="flex w-full items-center justify-between">
+              <span className="font-mono text-sm font-semibold">
+                {course.code}
+              </span>
+              <span className="text-muted-foreground text-xs">
+                {Math.round(course.similarity * 100)}% match
+              </span>
+            </div>
+            <span className="text-muted-foreground line-clamp-1 text-sm">
+              {course.name}
+            </span>
+            {course.department && (
+              <span className="text-muted-foreground text-xs">
+                {course.department}
+              </span>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// Institution selector component
+function InstitutionSelector({
+  institutions,
+  selectedInstitution,
+  onSelect
+}: {
+  institutions: Institution[]
+  selectedInstitution: string
+  onSelect: (institution: string) => void
+}) {
+  const [open, setOpen] = useState(false)
+  const mounted = useHasMounted()
+
+  const groupedInstitutions = groupInstitutionsByType(institutions)
+  const selectedInstitutionData = institutions.find(
+    (inst) => inst.shortName === selectedInstitution
+  )
+
+  if (!mounted) return null
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          className="text-muted-foreground hover:text-foreground w-fit justify-between rounded-s-none shadow-none"
+        >
+          {selectedInstitution
+            ? (selectedInstitutionData?.shortName ?? selectedInstitution)
+            : 'Select institution...'}
+          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-[300px] p-0">
+        <Command>
+          <CommandInput placeholder="Search institutions..." />
+          <CommandList>
+            <CommandEmpty>No institution found.</CommandEmpty>
+            {INSTITUTION_TYPE_ORDER.map((typeLabel) => {
+              const insts = groupedInstitutions[typeLabel]
+              if (!insts || insts.length === 0) return null
+
+              return (
+                <CommandGroup key={typeLabel} heading={typeLabel}>
+                  {insts.map((institution) => (
+                    <CommandItem
+                      key={institution.id}
+                      value={`${institution.shortName} ${institution.name}`}
+                      onSelect={() => {
+                        onSelect(institution.shortName)
+                        setOpen(false)
+                      }}
+                    >
+                      <Check
+                        className={cn(
+                          'mr-2 h-4 w-4',
+                          selectedInstitution === institution.shortName
+                            ? 'opacity-100'
+                            : 'opacity-0'
+                        )}
+                      />
+                      <div className="flex flex-col">
+                        <span className="font-medium">
+                          {institution.shortName}
+                        </span>
+                        <span className="text-muted-foreground text-xs break-words">
+                          {institution.name}
+                        </span>
+                      </div>
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              )
+            })}
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  )
+}
+
+// Main search component
 export default function Search({
   institutions
 }: {
@@ -73,15 +226,11 @@ export default function Search({
   const [selectedInstitution, setSelectedInstitution] = useAtom(
     selectedInstitutionAtom
   )
-  const [open, setOpen] = useState(false)
-  const [courseSuggestions, setCourseSuggestions] = useState<
-    CourseSuggestion[]
-  >([])
-  const [courseSuggestionsOpen, setCourseSuggestionsOpen] = useState(false)
-  const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false)
+  const [showSuggestions, setShowSuggestions] = useState(false)
+  const [selectedIndex, setSelectedIndex] = useState(-1)
 
   const inputRef = useRef<HTMLInputElement>(null)
-  const commandRef = useRef<HTMLDivElement>(null)
+  const suggestionsRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
 
   const debouncedSearch = useDebounce(search, 300)
@@ -98,133 +247,85 @@ export default function Search({
     loop: false
   })
 
-  const fetchCourseSuggestions = useCallback(
-    async (searchTerm: string, institutionShortName: string) => {
-      if (
-        !searchTerm.trim() ||
-        searchTerm.length < 2 ||
-        !institutionShortName
-      ) {
-        setCourseSuggestions([])
-        return
-      }
+  // Use TanStack Query for course suggestions
+  const { data: courseSuggestions = [], isLoading: isLoadingSuggestions } =
+    useQuery({
+      queryKey: ['courseSuggestions', debouncedSearch, selectedInstitution],
+      queryFn: async () => {
+        if (!debouncedSearch.trim() || !selectedInstitution) {
+          return []
+        }
 
-      const institution = institutions.find(
-        (inst) => inst.shortName === institutionShortName
-      )
-      if (!institution) return
+        const institution = institutions.find(
+          (inst) => inst.shortName === selectedInstitution
+        )
+        if (!institution) return []
 
-      setIsLoadingSuggestions(true)
-      try {
-        const suggestions = await searchCoursesAction(
+        return await searchCoursesAction(
           institution.id,
-          searchTerm.toUpperCase(),
+          debouncedSearch.toUpperCase(),
           8
         )
-        setCourseSuggestions(suggestions)
-        setCourseSuggestionsOpen(suggestions.length > 0)
-      } catch (error) {
-        console.error('Failed to fetch course suggestions:', error)
-        setCourseSuggestions([])
-      } finally {
-        setIsLoadingSuggestions(false)
-      }
-    },
-    [institutions]
+      },
+      enabled: Boolean(debouncedSearch.trim() && selectedInstitution),
+      staleTime: 5 * 60 * 1000 // 5 minutes
+    })
+
+  const shouldShowSuggestions = Boolean(
+    selectedInstitution &&
+      (courseSuggestions.length > 0 || isLoadingSuggestions)
   )
 
-  useEffect(() => {
-    void fetchCourseSuggestions(debouncedSearch, selectedInstitution)
-  }, [debouncedSearch, selectedInstitution, fetchCourseSuggestions])
-
+  // Handle input changes
   const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value
     setSearch(value)
+    setSelectedIndex(-1)
 
-    if (value.length >= 2 && selectedInstitution) {
-      setCourseSuggestionsOpen(true)
+    if (selectedInstitution) {
+      setShowSuggestions(true)
     } else {
-      setCourseSuggestionsOpen(false)
+      setShowSuggestions(false)
     }
   }
 
+  // Handle keyboard navigation
   const handleInputKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
-    if (courseSuggestionsOpen && courseSuggestions.length > 0) {
-      if (event.key === 'ArrowDown') {
+    if (!showSuggestions || courseSuggestions.length === 0) {
+      return
+    }
+
+    switch (event.key) {
+      case 'ArrowDown':
         event.preventDefault()
-        const firstItem = commandRef.current?.querySelector('[tabindex="0"]')
-        if (firstItem instanceof HTMLElement) {
-          firstItem.focus()
-        }
-      } else if (event.key === 'ArrowUp') {
+        setSelectedIndex((prev) =>
+          prev < courseSuggestions.length - 1 ? prev + 1 : prev
+        )
+        break
+      case 'ArrowUp':
         event.preventDefault()
-        const items = commandRef.current?.querySelectorAll('[tabindex="0"]')
-        const lastItem = items?.[items.length - 1]
-        if (lastItem instanceof HTMLElement) {
-          lastItem.focus()
+        setSelectedIndex((prev) => (prev > 0 ? prev - 1 : prev))
+        break
+      case 'Enter':
+        event.preventDefault()
+        if (selectedIndex >= 0 && courseSuggestions[selectedIndex]) {
+          handleCourseSuggestionSelect(courseSuggestions[selectedIndex].code)
+        } else if (search) {
+          submitSearch()
         }
-      } else if (event.key === 'Escape') {
-        setCourseSuggestionsOpen(false)
-        inputRef.current?.focus()
-      }
+        break
+      case 'Escape':
+        setShowSuggestions(false)
+        setSelectedIndex(-1)
+        break
     }
   }
 
-  const handleCommandItemKeyDown = (
-    event: KeyboardEvent<HTMLDivElement>,
-    courseCode: string
-  ) => {
-    if (event.key === 'Enter') {
-      event.preventDefault()
-      handleCourseSuggestionSelect(courseCode)
-    } else if (event.key === 'Escape') {
-      event.preventDefault()
-      setCourseSuggestionsOpen(false)
-      inputRef.current?.focus()
-    } else if (event.key === 'ArrowUp') {
-      event.preventDefault()
-      const currentItem = event.currentTarget
-      const prevItem = currentItem.previousElementSibling
-      if (
-        prevItem instanceof HTMLElement &&
-        prevItem.hasAttribute('tabindex')
-      ) {
-        prevItem.focus()
-      }
-    } else if (event.key === 'ArrowDown') {
-      event.preventDefault()
-      const currentItem = event.currentTarget
-      const nextItem = currentItem.nextElementSibling
-      if (
-        nextItem instanceof HTMLElement &&
-        nextItem.hasAttribute('tabindex')
-      ) {
-        nextItem.focus()
-      }
-    }
-  }
-
-  const handleSuggestionsBlur = (event: React.FocusEvent) => {
-    const currentTarget = event.currentTarget
-    const relatedTarget = event.relatedTarget
-
-    if (!currentTarget.contains(relatedTarget as Node)) {
-      setTimeout(() => {
-        setCourseSuggestionsOpen(false)
-      }, 150)
-    }
-  }
-
-  const handleInstitutionChange = (value: string) => {
-    setSelectedInstitution(value)
-    setOpen(false)
-    setCourseSuggestions([])
-    setCourseSuggestionsOpen(false)
-  }
-
+  // Handle suggestion selection
   const handleCourseSuggestionSelect = (courseCode: string) => {
     setSearch(courseCode)
-    setCourseSuggestionsOpen(false)
+    setShowSuggestions(false)
+    setSelectedIndex(-1)
     if (selectedInstitution) {
       router.push(
         `/course/${encodeURIComponent(selectedInstitution)}/${encodeURIComponent(courseCode)}`
@@ -232,42 +333,63 @@ export default function Search({
     }
   }
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
+  // Extract form submission logic
+  const submitSearch = () => {
     if (search && selectedInstitution) {
       const upperCaseSearch = search.toUpperCase()
-      setCourseSuggestionsOpen(false)
+      setShowSuggestions(false)
       router.push(
         `/course/${encodeURIComponent(selectedInstitution)}/${encodeURIComponent(upperCaseSearch)}`
       )
     }
   }
 
+  // Handle form submission
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    submitSearch()
+  }
+
+  // Handle input focus - don't close suggestions, only open if should show
   const handleInputFocus = () => {
-    if (search.length >= 2 && selectedInstitution) {
-      setCourseSuggestionsOpen(true)
+    if (shouldShowSuggestions) {
+      setShowSuggestions(true)
     }
   }
 
-  const handleInputBlur = (event: React.FocusEvent) => {
-    const relatedTarget = event.relatedTarget
-
-    if (commandRef.current?.contains(relatedTarget as Node)) {
-      return
-    }
-
-    setTimeout(() => {
-      setCourseSuggestionsOpen(false)
-    }, 150)
+  // Handle institution change
+  const handleInstitutionChange = (institution: string) => {
+    setSelectedInstitution(institution)
+    setShowSuggestions(false)
+    setSelectedIndex(-1)
   }
 
-  const mounted = useHasMounted()
+  // Handle mouse enter on suggestions
+  const handleSuggestionMouseEnter = (index: number) => {
+    setSelectedIndex(index)
+  }
 
-  const groupedInstitutions = groupInstitutionsByType(institutions)
+  // Handle click outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node
+      const inputElement = inputRef.current
+      const suggestionsElement = suggestionsRef.current
 
-  const selectedInstitutionData = institutions.find(
-    (inst) => inst.shortName === selectedInstitution
-  )
+      if (
+        inputElement &&
+        suggestionsElement &&
+        !inputElement.contains(target) &&
+        !suggestionsElement.contains(target)
+      ) {
+        setShowSuggestions(false)
+        setSelectedIndex(-1)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   return (
     <div className="relative">
@@ -285,136 +407,32 @@ export default function Search({
             onChange={handleInputChange}
             onKeyDown={handleInputKeyDown}
             onFocus={handleInputFocus}
-            onBlur={handleInputBlur}
             autoComplete="off"
           />
 
-          {/* Course suggestions popover */}
-          {mounted && selectedInstitution && (
-            <Popover
-              open={courseSuggestionsOpen}
-              onOpenChange={setCourseSuggestionsOpen}
+          {/* Simple suggestions dropdown */}
+          {showSuggestions && shouldShowSuggestions && (
+            <div
+              ref={suggestionsRef}
+              className="bg-popover absolute top-full right-0 left-0 z-50 mt-1 rounded-md border shadow-md"
+              style={{ width: inputRef.current?.offsetWidth }}
             >
-              <PopoverTrigger asChild>
-                <div />
-              </PopoverTrigger>
-              <PopoverContent
-                className="p-0"
-                align="start"
-                side="bottom"
-                style={{ width: inputRef.current?.offsetWidth }}
-                onOpenAutoFocus={(e) => e.preventDefault()}
-                onBlur={handleSuggestionsBlur}
-              >
-                <Command ref={commandRef} shouldFilter={false} loop={false}>
-                  <CommandList>
-                    {isLoadingSuggestions ? (
-                      <div className="text-muted-foreground p-4 text-sm">
-                        Loading suggestions...
-                      </div>
-                    ) : courseSuggestions.length === 0 ? (
-                      <CommandEmpty>No course suggestions found.</CommandEmpty>
-                    ) : (
-                      <CommandGroup heading="Course Suggestions">
-                        {courseSuggestions.map((course) => (
-                          <CommandItem
-                            key={`${course.institutionId}-${course.code}`}
-                            onSelect={() =>
-                              handleCourseSuggestionSelect(course.code)
-                            }
-                            onKeyDown={(e) =>
-                              handleCommandItemKeyDown(e, course.code)
-                            }
-                            className="focus:bg-accent focus:text-accent-foreground hover:bg-accent hover:text-accent-foreground flex cursor-pointer flex-col items-start p-3"
-                            tabIndex={0}
-                          >
-                            <div className="flex w-full items-center justify-between">
-                              <span className="font-mono text-sm font-semibold">
-                                {course.code}
-                              </span>
-                              <span className="text-muted-foreground text-xs">
-                                {Math.round(course.similarity * 100)}% match
-                              </span>
-                            </div>
-                            <span className="text-muted-foreground line-clamp-1 text-sm">
-                              {course.name}
-                            </span>
-                            {course.department && (
-                              <span className="text-muted-foreground text-xs">
-                                {course.department}
-                              </span>
-                            )}
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                    )}
-                  </CommandList>
-                </Command>
-              </PopoverContent>
-            </Popover>
+              <SuggestionList
+                suggestions={courseSuggestions}
+                isLoading={isLoadingSuggestions}
+                onSelect={handleCourseSuggestionSelect}
+                selectedIndex={selectedIndex}
+                onMouseEnter={handleSuggestionMouseEnter}
+              />
+            </div>
           )}
         </div>
 
-        {mounted && (
-          <Popover open={open} onOpenChange={setOpen}>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                role="combobox"
-                aria-expanded={open}
-                className="text-muted-foreground hover:text-foreground w-fit justify-between rounded-s-none shadow-none"
-              >
-                {selectedInstitution
-                  ? (selectedInstitutionData?.shortName ?? selectedInstitution)
-                  : 'Select institution...'}
-                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-[300px] p-0">
-              <Command>
-                <CommandInput placeholder="Search institutions..." />
-                <CommandList>
-                  <CommandEmpty>No institution found.</CommandEmpty>
-                  {INSTITUTION_TYPE_ORDER.map((typeLabel) => {
-                    const insts = groupedInstitutions[typeLabel]
-                    if (!insts || insts.length === 0) return null
-
-                    return (
-                      <CommandGroup key={typeLabel} heading={typeLabel}>
-                        {insts.map((institution) => (
-                          <CommandItem
-                            key={institution.id}
-                            value={`${institution.shortName} ${institution.name}`}
-                            onSelect={() =>
-                              handleInstitutionChange(institution.shortName)
-                            }
-                          >
-                            <Check
-                              className={cn(
-                                'mr-2 h-4 w-4',
-                                selectedInstitution === institution.shortName
-                                  ? 'opacity-100'
-                                  : 'opacity-0'
-                              )}
-                            />
-                            <div className="flex flex-col">
-                              <span className="font-medium">
-                                {institution.shortName}
-                              </span>
-                              <span className="text-muted-foreground text-xs break-words">
-                                {institution.name}
-                              </span>
-                            </div>
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                    )
-                  })}
-                </CommandList>
-              </Command>
-            </PopoverContent>
-          </Popover>
-        )}
+        <InstitutionSelector
+          institutions={institutions}
+          selectedInstitution={selectedInstitution}
+          onSelect={handleInstitutionChange}
+        />
       </form>
     </div>
   )
