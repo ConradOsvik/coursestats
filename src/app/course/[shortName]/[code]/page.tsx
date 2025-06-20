@@ -1,3 +1,4 @@
+import { Badge } from '~/components/ui/badge'
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -37,7 +38,7 @@ export default async function CoursePage({
   const course = await getCourseFromDb(institution.id, code)
 
   return (
-    <main className="flex w-full flex-col items-start justify-start">
+    <div className="flex w-full flex-col items-start justify-start">
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>
@@ -57,6 +58,28 @@ export default async function CoursePage({
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
+      <div className="space-y-6">
+        <div className="space-y-3">
+          <div className="flex items-center gap-3">
+            <h1 className="text-4xl font-bold tracking-tight">
+              {code.toUpperCase()}
+            </h1>
+            <Badge variant="outline" className="text-sm">
+              {course.credits} credits
+            </Badge>
+            <Badge variant="secondary" className="text-sm">
+              {course.lang}
+            </Badge>
+          </div>
+          <h2 className="text-muted-foreground text-2xl font-medium">
+            {course.name}
+          </h2>
+          <p className="text-muted-foreground text-lg">
+            {course.department} • {institution.name}
+          </p>
+        </div>
+      </div>
+
       <div className="mt-8 space-y-6">
         <div>
           <h2 className="mb-2 text-xl font-semibold">Institution</h2>
@@ -72,6 +95,6 @@ export default async function CoursePage({
           </pre>
         </div>
       </div>
-    </main>
+    </div>
   )
 }

@@ -7,7 +7,6 @@ import { getInstitutionsInDisplayOrder } from '~/lib/institution-utils'
 export default async function Hero() {
   const institutions = await getInstitutionsFromDb()
 
-  // Get institutions in the proper display order
   const sortedInstitutions = getInstitutionsInDisplayOrder(institutions)
 
   return (
