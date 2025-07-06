@@ -86,7 +86,7 @@ export const semesters = createTable(
       columns: [semester.institutionId, semester.courseCode],
       foreignColumns: [courses.institutionId, courses.code],
       name: 'semesters_course_fk'
-    })
+    }).onDelete('cascade')
   })
 )
 
@@ -140,7 +140,7 @@ export const grades = createTable(
         semesters.semester
       ],
       name: 'grades_semester_fk'
-    })
+    }).onDelete('cascade')
   })
 )
 

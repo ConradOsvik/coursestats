@@ -261,11 +261,13 @@ export default function Search({
         )
         if (!institution) return []
 
-        return await searchCoursesAction(
-          institution.id,
-          debouncedSearch.toUpperCase(),
-          8
-        )
+        const result = await searchCoursesAction({
+          institutionId: institution.id,
+          searchCode: debouncedSearch.toUpperCase(),
+          limit: 8
+        })
+
+        return result?.data ?? []
       },
       enabled: Boolean(debouncedSearch.trim() && selectedInstitution),
       staleTime: 5 * 60 * 1000 // 5 minutes

@@ -27,7 +27,7 @@ export default function RootLayout({
       >
         <TRPCReactProvider>
           <Header />
-          <main className="flex w-full max-w-4xl flex-grow flex-col items-center justify-start">
+          <main className="gradient-border-y gradient-border-l flex w-full max-w-4xl flex-grow flex-col items-center justify-start p-4">
             {children}
           </main>
         </TRPCReactProvider>

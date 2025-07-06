@@ -11,6 +11,7 @@ interface CourseApiResponse {
 }
 
 interface SemesterApiResponse {
+  Emnekode: string
   Årstall: string
   Semester: string
   Karakter: string
@@ -52,32 +53,92 @@ const languageMap: Record<string, string> = {
   ENG: 'EN'
 }
 
+const searchCourseWithPattern = async (
+  institutionId: number,
+  pattern: string
+): Promise<CourseApiResponse[]> => {
+  try {
+    return await api<CourseApiResponse[]>({
+      tabell_id: 208,
+      variabler: ['*'],
+      sortBy: ['Institusjonskode', 'Emnekode'],
+      filter: [
+        createFilter({
+          variabel: 'Institusjonskode',
+          filter: 'item',
+          values: [String(institutionId)]
+        }),
+        createFilter({
+          variabel: 'Emnekode',
+          filter: 'like',
+          values: [pattern]
+        }),
+        createFilter({
+          variabel: 'Årstall',
+          filter: 'top',
+          values: ['1']
+        })
+      ]
+    })
+  } catch (error) {
+    console.error(`Failed to search courses with pattern ${pattern}:`, error)
+    return []
+  }
+}
+
+const searchSemesterWithPattern = async (
+  institutionId: number,
+  pattern: string
+): Promise<SemesterApiResponse[]> => {
+  try {
+    return await api<SemesterApiResponse[]>({
+      tabell_id: 308,
+      groupBy: ['Emnekode', 'Årstall', 'Semester', 'Karakter'],
+      sortBy: ['Årstall', 'Semester', 'Karakter'],
+      filter: [
+        createFilter({
+          variabel: 'Institusjonskode',
+          filter: 'item',
+          values: [String(institutionId)]
+        }),
+        createFilter({
+          variabel: 'Emnekode',
+          filter: 'like',
+          values: [pattern]
+        }),
+        createFilter({
+          variabel: 'Semester',
+          filter: 'item',
+          values: ['1', '3']
+        })
+      ]
+    })
+  } catch (error) {
+    console.error(`Failed to search semesters with pattern ${pattern}:`, error)
+    return []
+  }
+}
+
 export const getCourseFromApi = async (
   institutionId: number,
   courseCode: string
 ) => {
-  const courseData = await api<CourseApiResponse[]>({
-    tabell_id: 208,
-    variabler: ['*'],
-    sortBy: ['Institusjonskode', 'Emnekode'],
-    filter: [
-      createFilter({
-        variabel: 'Institusjonskode',
-        filter: 'item',
-        values: [String(institutionId)]
-      }),
-      createFilter({
-        variabel: 'Emnekode',
-        filter: 'like',
-        values: [`${courseCode}%`]
-      }),
-      createFilter({
-        variabel: 'Årstall',
-        filter: 'top',
-        values: ['1']
-      })
-    ]
-  })
+  const baseCode = extractCourseCode(courseCode)
+
+  let courseData = await searchCourseWithPattern(institutionId, courseCode)
+
+  if (courseData.length === 0 && courseCode === baseCode) {
+    courseData = await searchCourseWithPattern(institutionId, `${baseCode}-%`)
+  }
+
+  if (courseData.length === 0) {
+    courseData = await searchCourseWithPattern(institutionId, `${baseCode}%`)
+
+    courseData = courseData.filter((course) => {
+      const extractedCode = extractCourseCode(course.Emnekode)
+      return extractedCode === baseCode
+    })
+  }
 
   const latest = courseData[courseData.length - 1]
   if (!latest) return null
@@ -96,28 +157,28 @@ export const getSemestersFromApi = async (
   institutionId: number,
   courseCode: string
 ) => {
-  const semesterData = await api<SemesterApiResponse[]>({
-    tabell_id: 308,
-    groupBy: ['Emnekode', 'Årstall', 'Semester', 'Karakter'],
-    sortBy: ['Årstall', 'Semester', 'Karakter'],
-    filter: [
-      createFilter({
-        variabel: 'Institusjonskode',
-        filter: 'item',
-        values: [String(institutionId)]
-      }),
-      createFilter({
-        variabel: 'Emnekode',
-        filter: 'like',
-        values: [`${courseCode}%`]
-      }),
-      createFilter({
-        variabel: 'Semester',
-        filter: 'item',
-        values: ['1', '3']
-      })
-    ]
-  })
+  const baseCode = extractCourseCode(courseCode)
+
+  let semesterData = await searchSemesterWithPattern(institutionId, courseCode)
+
+  if (semesterData.length === 0 && courseCode === baseCode) {
+    semesterData = await searchSemesterWithPattern(
+      institutionId,
+      `${baseCode}-%`
+    )
+  }
+
+  if (semesterData.length === 0) {
+    semesterData = await searchSemesterWithPattern(
+      institutionId,
+      `${baseCode}%`
+    )
+
+    semesterData = semesterData.filter((entry) => {
+      const extractedCode = extractCourseCode(entry.Emnekode)
+      return extractedCode === baseCode
+    })
+  }
 
   const semesterMap = new Map<string, SemesterData>()
 

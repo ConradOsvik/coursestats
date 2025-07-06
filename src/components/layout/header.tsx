@@ -6,7 +6,7 @@ import { cn } from '~/lib/utils'
 
 export default function Header() {
   return (
-    <header className="flex items-center justify-center">
+    <header className="gradient-border-x flex w-full items-center justify-center">
       <nav className="flex items-center justify-center">
         <NavLink href="/">Home</NavLink>
         <NavLink href="/about">About</NavLink>
