@@ -122,82 +122,78 @@
 }
 
 @layer utilities {
-  .gradient-border-x {
+  .verticle-borders {
     position: relative;
   }
 
-  .gradient-border-x::after {
+  .verticle-borders::before {
     content: '';
     position: absolute;
-    left: 0;
+    left: -1px;
+    top: 0;
     bottom: 0;
-    width: 100%;
+    width: 1px;
+    background: linear-gradient(
+      to bottom,
+      transparent 0px,
+      var(--color-border) 60px,
+      var(--color-border) calc(100% - 60px),
+      transparent 100%
+    );
+  }
+
+  .verticle-borders::after {
+    content: '';
+    position: absolute;
+    right: -1px;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: linear-gradient(
+      to bottom,
+      transparent 0px,
+      var(--color-border) 60px,
+      var(--color-border) calc(100% - 60px),
+      transparent 100%
+    );
+  }
+
+  .header-border {
+    position: relative;
+  }
+
+  .header-border::after {
+    content: '';
+    position: absolute;
+    left: -60px;
+    bottom: -1px;
+    right: -60px;
     height: 1px;
     background: linear-gradient(
       to right,
-      transparent 0,
-      var(--color-border) 200px,
-      var(--color-border) calc(100% - 200px),
+      transparent 0px,
+      var(--color-border) 60px,
+      var(--color-border) calc(100% - 60px),
       transparent 100%
     );
   }
 
-  .gradient-border-y {
+  .footer-border {
     position: relative;
   }
 
-  .gradient-border-y::after {
+  .footer-border::before {
     content: '';
     position: absolute;
-    top: 0;
-    right: 0;
-    width: 1px;
-    height: 100%;
-    background: linear-gradient(
-      to bottom,
-      transparent 0,
-      var(--color-border) 200px,
-      var(--color-border) calc(100% - 200px),
-      transparent 100%
-    );
-  }
-
-  .gradient-border-t {
-    position: relative;
-  }
-
-  .gradient-border-t::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
+    left: -60px;
+    top: -1px;
+    right: -60px;
     height: 1px;
     background: linear-gradient(
       to right,
-      transparent 0,
-      var(--color-border) 200px,
-      var(--color-border) calc(100% - 200px),
-      transparent 100%
-    );
-  }
-
-  .gradient-border-l {
-    position: relative;
-  }
-
-  .gradient-border-l::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 1px;
-    height: 100%;
-    background: linear-gradient(
-      to bottom,
-      transparent 0,
-      var(--color-border) 200px,
-      var(--color-border) calc(100% - 200px),
+      transparent 0px,
+      var(--color-border) 60px,
+      var(--color-border) calc(100% - 60px),
       transparent 100%
     );
   }

@@ -65,6 +65,13 @@ export const getCourseFromDb = async (
   return course
 }
 
+export const getAllCoursesForInstitution = async (institutionId: number) => {
+  return await db
+    .select()
+    .from(courses)
+    .where(eq(courses.institutionId, institutionId))
+}
+
 export const addCourse = async (institutionId: number, courseCode: string) => {
   const [courseData, semesterData] = await Promise.all([
     getCourseFromApi(institutionId, courseCode),

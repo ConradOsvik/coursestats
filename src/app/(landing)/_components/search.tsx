@@ -7,8 +7,7 @@ import {
   type KeyboardEvent,
   useEffect,
   useRef,
-  useState,
-  useCallback
+  useState
 } from 'react'
 import { useTypewriter } from 'react-simple-typewriter'
 import { Check, ChevronsUpDown } from 'lucide-react'

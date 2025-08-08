@@ -9,6 +9,10 @@ import {
 import { getCourseFromDb } from '~/server/db/queries/courses'
 import { getInstitutionByShortNameFromDb } from '~/server/db/queries/institutions'
 
+export async function generateStaticParams() {
+  return []
+}
+
 export async function generateMetadata({
   params
 }: {

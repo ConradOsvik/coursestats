@@ -156,6 +156,7 @@ export const FlickeringGrid: React.FC<FlickeringGridProps> = ({
 
     const intersectionObserver = new IntersectionObserver(
       ([entry]) => {
+        // @ts-ignore
         setIsInView(entry.isIntersecting)
       },
       { threshold: 0 }

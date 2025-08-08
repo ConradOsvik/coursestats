@@ -5,6 +5,7 @@ import type { Metadata } from 'next'
 
 import { TRPCReactProvider } from '~/trpc/client'
 import Header from '~/components/layout/header'
+import Footer from '~/components/layout/footer'
 
 export const metadata: Metadata = {
   title: 'Create T3 App',
@@ -26,10 +27,11 @@ export default function RootLayout({
         className={`flex min-h-screen flex-col items-center justify-start ${inter.variable} font-inter antialiased`}
       >
         <TRPCReactProvider>
-          <Header />
-          <main className="gradient-border-y gradient-border-l flex w-full max-w-4xl flex-grow flex-col items-center justify-start p-4">
-            {children}
-          </main>
+          <div className="verticle-borders relative flex min-h-screen w-full max-w-4xl flex-col">
+            <Header />
+            <main className="flex-grow p-4">{children}</main>
+            <Footer />
+          </div>
         </TRPCReactProvider>
       </body>
     </html>
