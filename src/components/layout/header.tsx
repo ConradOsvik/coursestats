@@ -6,10 +6,11 @@ import { cn } from '~/lib/utils'
 
 export default function Header() {
   return (
-    <header className="header-border flex w-full items-center justify-center" style={{height: '60px'}}>
-      <nav className="flex items-center justify-center">
-        <NavLink href="/">Home</NavLink>
-        <NavLink href="/about">About</NavLink>
+    <header className="header-border flex w-full items-center justify-start">
+      <nav className="flex items-center justify-center px-4">
+        <Link href="/" className="p-2 text-2xl font-black">
+          CourseStats
+        </Link>
       </nav>
     </header>
   )
