@@ -1,11 +1,13 @@
+import './src/env.js'
 import type { NextConfig } from 'next'
 
-const nextConfig: NextConfig = {
-    logging: {
-        fetches: {
-            fullUrl: true
-        }
-    }
+const config: NextConfig = {
+  eslint: {
+    ignoreDuringBuilds: true
+  },
+  experimental: {
+    useCache: true
+  }
 }
 
-export default nextConfig
+export default config
