@@ -5,6 +5,11 @@ import { env } from '~/env'
 export default async function sitemap() {
   const institutions = await getInstitutionsFromDb()
 
+  // Create base URL with proper protocol handling
+  const baseUrl = env.VERCEL_URL
+    ? `https://${env.VERCEL_URL}`
+    : 'http://localhost:3000' // fallback for local dev
+
   const coursesPromises = institutions.map((institution) =>
     getAllCoursesForInstitution(institution.id).then((courses) => ({
       institution,
@@ -16,7 +21,7 @@ export default async function sitemap() {
 
   const urls = institutionCourses.flatMap(({ institution, courses }) =>
     courses.map((course) => ({
-      url: `${env.SITE_URL}/course/${institution.shortName}/${course.code}`,
+      url: `${baseUrl}/course/${institution.shortName}/${course.code}`,
       lastModified: course.updatedAt
     }))
   )
