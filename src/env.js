@@ -15,7 +15,18 @@ export const env = createEnv({
       .enum(['development', 'test', 'production'])
       .default('development'),
     HKDIR_BASE_URL: z.string().url(),
-    VERCEL_URL: z.string().url()
+    VERCEL_URL: z
+      .string()
+      .optional()
+      .transform((val) => {
+        if (!val) return undefined
+        // If it already has a protocol, return as-is
+        if (val.startsWith('http://') || val.startsWith('https://')) {
+          return val
+        }
+        // Otherwise, add https://
+        return `https://${val}`
+      })
   },
 
   /**
