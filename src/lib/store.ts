@@ -6,3 +6,5 @@ export const selectedInstitutionAtom = atomWithStorage<string>(
   'NTNU'
 )
 export const selectedSemesterAtom = atom(0)
+
+export const showGendersAtom = atom(false)
