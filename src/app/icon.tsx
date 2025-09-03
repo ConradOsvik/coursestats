@@ -48,7 +48,8 @@ export default async function Icon() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          color: 'white'
+          color: 'white',
+          borderRadius: '6px'
         }}
       >
         {text}
