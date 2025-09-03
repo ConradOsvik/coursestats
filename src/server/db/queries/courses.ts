@@ -7,6 +7,8 @@ import { courses, grades, semesters } from '../schema'
 import { and, eq, or, sql } from 'drizzle-orm'
 import { isValidCourseCodeFormat } from '~/lib/course-utils'
 
+export type Course = Awaited<ReturnType<typeof getCourseFromDb>>
+
 export const getCourseFromDb = async (
   institutionId: number,
   courseCode: string
@@ -26,8 +28,8 @@ export const getCourseFromDb = async (
       ),
     with: {
       semesters: {
-        orderBy: (semesters, { desc, asc }) => [
-          desc(semesters.year),
+        orderBy: (semesters, { asc }) => [
+          asc(semesters.year),
           asc(semesters.semester)
         ],
         with: {
