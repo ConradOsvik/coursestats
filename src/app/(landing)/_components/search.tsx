@@ -36,7 +36,7 @@ import {
   groupInstitutionsByType,
   type Institution
 } from '~/lib/institution-utils'
-import { searchCoursesAction } from './actions'
+import { searchCourseAction, searchCoursesAction } from '../actions'
 
 function useDebounce<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState<T>(value)
@@ -169,7 +169,7 @@ function InstitutionSelector({
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[280px] sm:w-[300px] p-0">
+      <PopoverContent className="w-[280px] p-0 sm:w-[300px]">
         <Command>
           <CommandInput placeholder="Search institutions..." />
           <CommandList>
@@ -267,6 +267,13 @@ export default function Search({
           searchCode: debouncedSearch.toUpperCase(),
           limit: 8
         })
+
+        console.log(
+          await searchCourseAction({
+            courseCode: debouncedSearch.toUpperCase(),
+            limit: 8
+          })
+        )
 
         return result?.data ?? []
       },
@@ -400,9 +407,9 @@ export default function Search({
         onSubmit={handleSubmit}
         className="bg-background flex w-full rounded-md shadow-xs"
       >
-        <div className="relative flex-1 min-w-0">
+        <div className="relative min-w-0 flex-1">
           <Input
-            className="-me-px rounded-e-none uppercase shadow-none focus-visible:z-10 w-full"
+            className="-me-px w-full rounded-e-none uppercase shadow-none focus-visible:z-10"
             placeholder={placeholder}
             value={search}
             ref={inputRef}
@@ -418,7 +425,7 @@ export default function Search({
             <div
               ref={suggestionsRef}
               className="bg-popover absolute top-full right-0 left-0 z-50 mt-1 rounded-md border shadow-md"
-              style={{ 
+              style={{
                 width: Math.max(inputRef.current?.offsetWidth ?? 0, 280),
                 maxWidth: '90vw'
               }}

@@ -149,3 +149,60 @@ export const searchCourseCodesFuzzy = async (
     )
     .limit(limit)
 }
+
+export const searchCourseCode = async (courseCode: string, limit = 10) => {
+  // Global fuzzy search across all institutions for a given course code.
+  // Uses Jaro–Winkler (prefix-friendly) and Damerau–Levenshtein (handles transpositions).
+  const searchCode = courseCode
+    .toUpperCase()
+    .replaceAll('Æ', 'AE')
+    .replaceAll('Ø', 'O')
+    .replaceAll('Å', 'A')
+
+  const len = searchCode.length
+  // Linear scaling thresholds:
+  // - Jaro–Winkler min increases with length: 0.70 + 0.04*(len-2), capped at 0.94
+  // - Max Damerau–Levenshtein edits: floor(len/4)
+  const jwMin = Math.min(0.94, 0.7 + 0.04 * Math.max(0, len - 2))
+  const dlMax = len <= 1 ? 0 : Math.ceil(len / 4)
+
+  const lettersMatch = /^([A-Z]+)/.exec(searchCode)
+  const letterPrefix = lettersMatch?.[1] ?? ''
+  const likePrefix = `${letterPrefix}%`
+
+  const codeAscii = sql`upper(replace(replace(replace(${courses.code}, 'Æ', 'AE'), 'Ø', 'O'), 'Å', 'A'))`
+
+  // Compare query against the code's prefix of the same length for consistent behavior
+  const compareLeft = sql`substr(${codeAscii}, 1, ${len})`
+
+  // For 2-4 character inputs, also allow substring containment anywhere
+  const allowContains = len >= 2 && len <= 4
+  const containsPattern = `%${searchCode}%`
+
+  return await db
+    .select({
+      institutionId: courses.institutionId,
+      code: courses.code,
+      name: courses.name,
+      department: courses.department,
+      similarity: sql<number>`jaro_winkler(${compareLeft}, ${searchCode})`,
+      damEditDistance: sql<number>`dlevenshtein(${compareLeft}, ${searchCode})`
+    })
+    .from(courses)
+    .where(
+      or(
+        sql`jaro_winkler(${compareLeft}, ${searchCode}) >= ${jwMin}`,
+        sql`dlevenshtein(${compareLeft}, ${searchCode}) <= ${dlMax}`,
+        allowContains ? sql`${codeAscii} LIKE ${containsPattern}` : sql`0`,
+        letterPrefix ? sql`${courses.code} LIKE ${likePrefix}` : sql`0`
+      )
+    )
+    .orderBy(
+      sql`jaro_winkler(${compareLeft}, ${searchCode}) DESC`,
+      sql`dlevenshtein(${codeAscii}, ${searchCode}) ASC`,
+      letterPrefix
+        ? sql`CASE WHEN ${courses.code} LIKE ${likePrefix} THEN 0 ELSE 1 END`
+        : sql`0`
+    )
+    .limit(limit)
+}

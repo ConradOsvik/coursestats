@@ -5,7 +5,8 @@ import {
   sqliteTableCreator,
   text,
   primaryKey,
-  foreignKey
+  foreignKey,
+  index
 } from 'drizzle-orm/sqlite-core'
 import { INSTITUTION_TYPES, SEMESTERS } from '~/lib/constants'
 
@@ -47,7 +48,8 @@ export const courses = createTable(
       .$defaultFn(() => new Date())
   },
   (courses) => ({
-    pk: primaryKey({ columns: [courses.institutionId, courses.code] })
+    pk: primaryKey({ columns: [courses.institutionId, courses.code] }),
+    codeIdx: index('course_code_idx').on(courses.code)
   })
 )
 

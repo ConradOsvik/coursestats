@@ -1,3 +1,9 @@
+import { NextResponse } from 'next/server'
+
+export async function GET() {
+  return NextResponse.json({ message: 'Hello, world!' })
+}
+
 // import { NextResponse } from 'next/server'
 // import { INSTITUTIONS } from '~/lib/constants'
 // import { db } from '~/server/db'

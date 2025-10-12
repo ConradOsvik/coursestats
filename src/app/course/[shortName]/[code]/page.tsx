@@ -20,7 +20,7 @@ export async function generateMetadata({
   const code = decodeURIComponent(_code)
 
   return {
-    title: `CourseStats / ${shortName} - ${code.toUpperCase()}`,
+    title: `${shortName} - ${code.toUpperCase()}`,
     description: `statistics for ${code.toUpperCase()} at ${shortName}`
   }
 }

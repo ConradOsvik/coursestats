@@ -2,7 +2,10 @@
 
 import { z } from 'zod'
 import { actionClient } from '~/lib/safe-action'
-import { searchCourseCodesFuzzy } from '~/server/db/queries/courses'
+import {
+  searchCourseCodesFuzzy,
+  searchCourseCode
+} from '~/server/db/queries/courses'
 
 const searchCoursesSchema = z.object({
   institutionId: z.number(),
@@ -22,3 +25,14 @@ export const searchCoursesAction = actionClient
       }
     }
   )
+
+const searchCourseSchema = z.object({
+  courseCode: z.string(),
+  limit: z.number().default(10).optional()
+})
+
+export const searchCourseAction = actionClient
+  .inputSchema(searchCourseSchema)
+  .action(async ({ parsedInput: { courseCode, limit = 10 } }) => {
+    return await searchCourseCode(courseCode, limit)
+  })
