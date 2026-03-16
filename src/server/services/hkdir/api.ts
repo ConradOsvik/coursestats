@@ -79,3 +79,22 @@ export const api = <T>(opts: ApiOptions): Promise<T> => {
     return response.json() as Promise<T>
   })
 }
+
+export const bulk = <T>(tableId: string): Promise<T> => {
+  const url = new URL(`${env.HKDIR_BASE_URL}/api/Tabeller/bulk-csv`)
+
+  url.searchParams.set('rptNr', tableId)
+
+  console.log(url)
+
+  return fetch(url, {
+    method: 'GET'
+  }).then((response) => {
+    if (!response.ok) {
+      throw new Error(response.statusText)
+    }
+    if (response.status === 204) return [] as unknown as T
+
+    return response.text() as Promise<T>
+  })
+}
